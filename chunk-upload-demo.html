@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chunk Video Upload Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .status {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border: 1px solid #c8e6c9;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+            border: 1px solid #ffcdd2;
+        }
+
+        .video-container {
+            display: none;
+            margin-top: 30px;
+            border-top: 2px solid #e0e0e0;
+            padding-top: 30px;
+        }
+
+        .video-container h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .chunk-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .chunk-info div {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 4px;
+        }
+
+        .chunk-info span {
+            font-weight: 600;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎥 Chunk Video Upload Demo</h1>
+
+        <div class="form-group">
+            <label for="token">Authentication Token:</label>
+            <input type="text" id="token" placeholder="Enter your JWT token">
+        </div>
+
+        <div class="form-group">
+            <label for="topicId">Topic ID:</label>
+            <input type="text" id="topicId" placeholder="Enter topic ID">
+        </div>
+
+        <div class="form-group">
+            <label for="videoFile">Select Video File:</label>
+            <input type="file" id="videoFile" accept="video/*,audio/*">
+        </div>
+
+        <button id="uploadBtn" onclick="uploadVideo()">Upload Video</button>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill">0%</div>
+            </div>
+            <div class="chunk-info" id="chunkInfo">
+                <div>Chunks: <span id="chunkCount">0/0</span></div>
+                <div>Size: <span id="fileSize">0 MB</span></div>
+            </div>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="video-container" id="videoContainer">
+            <h2>Uploaded Video:</h2>
+            <video id="videoPlayer" controls>
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8585/api';
+        const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB per chunk
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        function updateProgress(uploaded, total) {
+            const percentage = Math.round((uploaded / total) * 100);
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = percentage + '%';
+            progressFill.textContent = percentage + '%';
+            document.getElementById('chunkCount').textContent = `${uploaded}/${total}`;
+        }
+
+        function formatFileSize(bytes) {
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        // Custom video streamer using Media Source Extensions with authentication
+        class AuthenticatedVideoStreamer {
+            constructor(videoElement, videoUrl, token) {
+                this.videoElement = videoElement;
+                this.videoUrl = videoUrl;
+                this.token = token;
+                this.chunkSize = 5 * 1024 * 1024; // 5MB chunks (same as upload)
+                this.mediaSource = null;
+                this.sourceBuffer = null;
+                this.videoSize = 0;
+                this.mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+                this.currentByte = 0;
+                this.isAppending = false;
+                this.queue = [];
+            }
+
+            async initialize() {
+                // First, get video metadata
+                const headResponse = await fetch(this.videoUrl, {
+                    method: 'HEAD',
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                if (!headResponse.ok) {
+                    throw new Error(`Failed to access video: ${headResponse.status}`);
+                }
+
+                this.videoSize = parseInt(headResponse.headers.get('Content-Length') || '0');
+                const contentType = headResponse.headers.get('Content-Type') || 'video/mp4';
+
+                console.log(`Video size: ${this.videoSize} bytes, type: ${contentType}`);
+
+                // Use authenticated full download for all videos
+                // This is the most reliable approach that works with authentication
+                // For very large videos, the browser will handle progressive download automatically
+                console.log('Using authenticated download with Range support');
+                await this.loadFullVideo();
+            }
+
+            async loadWithMediaSource() {
+                return new Promise((resolve, reject) => {
+                    this.mediaSource = new MediaSource();
+                    this.videoElement.src = URL.createObjectURL(this.mediaSource);
+
+                    this.mediaSource.addEventListener('sourceopen', async () => {
+                        try {
+                            // Try different codec combinations
+                            const codecsToTry = [
+                                'video/mp4; codecs="avc1.42E01E, mp4a.40.2"',
+                                'video/mp4; codecs="avc1.64001E, mp4a.40.2"',
+                                'video/mp4; codecs="avc1.4D401E, mp4a.40.2"',
+                                'video/mp4',
+                                'video/webm; codecs="vp8, vorbis"',
+                                'video/webm; codecs="vp9, opus"'
+                            ];
+
+                            let codecWorked = false;
+                            for (const codec of codecsToTry) {
+                                if (MediaSource.isTypeSupported(codec)) {
+                                    try {
+                                        console.log(`Trying codec: ${codec}`);
+                                        this.sourceBuffer = this.mediaSource.addSourceBuffer(codec);
+                                        this.mimeCodec = codec;
+                                        codecWorked = true;
+                                        break;
+                                    } catch (e) {
+                                        console.warn(`Codec ${codec} failed:`, e);
+                                    }
+                                }
+                            }
+
+                            if (!codecWorked) {
+                                throw new Error('No supported codec found');
+                            }
+
+                            this.sourceBuffer.addEventListener('updateend', () => {
+                                this.isAppending = false;
+                                this.processQueue();
+                            });
+
+                            this.sourceBuffer.addEventListener('error', (e) => {
+                                console.error('SourceBuffer error:', e);
+                            });
+
+                            // Start fetching chunks
+                            await this.fetchNextChunk();
+                            resolve();
+
+                        } catch (error) {
+                            console.error('MSE initialization error:', error);
+                            // Fallback to full download
+                            await this.loadFullVideo();
+                            resolve();
+                        }
+                    });
+
+                    this.mediaSource.addEventListener('error', (e) => {
+                        console.error('MediaSource error:', e);
+                        reject(e);
+                    });
+                });
+            }
+
+            async fetchNextChunk() {
+                if (this.currentByte >= this.videoSize) {
+                    if (this.mediaSource.readyState === 'open') {
+                        this.mediaSource.endOfStream();
+                    }
+                    return;
+                }
+
+                const end = Math.min(this.currentByte + this.chunkSize - 1, this.videoSize - 1);
+                const rangeHeader = `bytes=${this.currentByte}-${end}`;
+
+                console.log(`Fetching video chunk: ${rangeHeader}`);
+
+                try {
+                    const response = await fetch(this.videoUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${this.token}`,
+                            'Range': rangeHeader
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch chunk: ${response.status}`);
+                    }
+
+                    const chunk = await response.arrayBuffer();
+                    this.appendChunk(chunk);
+                    this.currentByte = end + 1;
+
+                    // Fetch next chunk
+                    if (this.currentByte < this.videoSize) {
+                        setTimeout(() => this.fetchNextChunk(), 10);
+                    }
+
+                } catch (error) {
+                    console.error('Error fetching video chunk:', error);
+                }
+            }
+
+            appendChunk(chunk) {
+                this.queue.push(chunk);
+                this.processQueue();
+            }
+
+            processQueue() {
+                if (this.isAppending || this.queue.length === 0) {
+                    return;
+                }
+
+                if (this.sourceBuffer && !this.sourceBuffer.updating) {
+                    const chunk = this.queue.shift();
+                    this.isAppending = true;
+                    try {
+                        this.sourceBuffer.appendBuffer(chunk);
+                    } catch (error) {
+                        console.error('Error appending buffer:', error);
+                        this.isAppending = false;
+                    }
+                }
+            }
+
+            async loadFullVideo() {
+                // Fallback: load entire video with authentication
+                const response = await fetch(this.videoUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to load video: ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+
+                this.videoElement.src = blobUrl;
+                this.videoElement.dataset.blobUrl = blobUrl;
+                this.videoElement.load();
+
+                console.log('Video loaded (full download fallback)');
+            }
+        }
+
+        async function loadSecuredVideo(topicId, token) {
+            try {
+                const videoUrl = `${API_BASE_URL}/topic/${topicId}/content/stream`;
+                const videoPlayer = document.getElementById('videoPlayer');
+
+                // Clean up previous blob URL if exists
+                if (videoPlayer.dataset.blobUrl) {
+                    URL.revokeObjectURL(videoPlayer.dataset.blobUrl);
+                }
+
+                const streamer = new AuthenticatedVideoStreamer(videoPlayer, videoUrl, token);
+                await streamer.initialize();
+
+                showStatus('✓ Video uploaded and ready to play!', 'success');
+
+            } catch (error) {
+                console.error('Error loading video:', error);
+                showStatus('✗ Failed to load video: ' + error.message, 'error');
+            }
+        }
+
+        async function uploadVideo() {
+            const token = document.getElementById('token').value.trim();
+            const topicId = document.getElementById('topicId').value.trim();
+            const fileInput = document.getElementById('videoFile');
+            const file = fileInput.files[0];
+
+            // Validation
+            if (!token) {
+                showStatus('Please enter authentication token', 'error');
+                return;
+            }
+
+            if (!topicId) {
+                showStatus('Please enter topic ID', 'error');
+                return;
+            }
+
+            if (!file) {
+                showStatus('Please select a video file', 'error');
+                return;
+            }
+
+            // Disable button and show progress
+            const uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('videoContainer').style.display = 'none';
+
+            // Calculate chunks
+            const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            updateProgress(0, totalChunks);
+
+            const headers = {
+                'Authorization': `Bearer ${token}`
+            };
+
+            try {
+                // Step 1: Initialize upload
+                showStatus('Initializing upload...', 'info');
+                const initResponse = await fetch(`${API_BASE_URL}/topic/${topicId}/content/chunk/init`, {
+                    method: 'POST',
+                    headers: {
+                        ...headers,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        originalFileName: file.name,
+                        totalFileSize: file.size,
+                        totalChunks: totalChunks,
+                        contentType: file.type.startsWith('video') ? 0 : 1, // 0=VIDEO, 1=AUDIO
+                        mimeType: file.type
+                    })
+                });
+
+                if (!initResponse.ok) {
+                    const errorData = await initResponse.json();
+                    throw new Error(errorData.message || 'Failed to initialize upload');
+                }
+
+                const initResult = await initResponse.json();
+                const uploadId = initResult.data.uploadId;
+
+                showStatus(`Upload initialized! ID: ${uploadId}`, 'info');
+
+                // Step 2: Upload chunks
+                showStatus(`Uploading ${totalChunks} chunks...`, 'info');
+
+                for (let i = 0; i < totalChunks; i++) {
+                    const start = i * CHUNK_SIZE;
+                    const end = Math.min(start + CHUNK_SIZE, file.size);
+                    const chunk = file.slice(start, end);
+
+                    const formData = new FormData();
+                    formData.append('chunk', chunk);
+
+                    const chunkResponse = await fetch(
+                        `${API_BASE_URL}/topic/${topicId}/content/chunk/${uploadId}/${i}`,
+                        {
+                            method: 'POST',
+                            headers: headers,
+                            body: formData
+                        }
+                    );
+
+                    if (!chunkResponse.ok) {
+                        const errorData = await chunkResponse.json();
+                        throw new Error(`Failed to upload chunk ${i}: ${errorData.message}`);
+                    }
+
+                    const chunkResult = await chunkResponse.json();
+                    updateProgress(chunkResult.data.uploadedChunks, totalChunks);
+                    showStatus(`Uploading chunk ${i + 1}/${totalChunks}...`, 'info');
+                }
+
+                // Step 3: Finalize upload
+                showStatus('Finalizing upload...', 'info');
+                const finalizeUrl = `${API_BASE_URL}/topic/${topicId}/content/chunk/finalize/${uploadId}`;
+                console.log('Finalize URL:', finalizeUrl);
+                console.log('Headers:', headers);
+
+                const finalizeResponse = await fetch(
+                    finalizeUrl,
+                    {
+                        method: 'POST',
+                        headers: {
+                            ...headers,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    }
+                );
+
+                console.log('Finalize response status:', finalizeResponse.status);
+                console.log('Finalize response headers:', [...finalizeResponse.headers.entries()]);
+
+                if (!finalizeResponse.ok) {
+                    let errorData;
+                    try {
+                        errorData = await finalizeResponse.json();
+                    } catch (e) {
+                        errorData = { message: `HTTP ${finalizeResponse.status}: ${finalizeResponse.statusText}` };
+                    }
+                    console.error('Finalize error:', errorData);
+                    throw new Error(errorData.message || 'Failed to finalize upload');
+                }
+
+                const finalResult = await finalizeResponse.json();
+                showStatus('✓ Upload completed successfully!', 'success');
+
+                // Show video player
+                document.getElementById('videoContainer').style.display = 'block';
+                showStatus('Loading video for playback...', 'info');
+
+                // Load video with authentication using Fetch API and Blob URL
+                await loadSecuredVideo(topicId, token);
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                showStatus('✗ Upload failed: ' + error.message, 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = 'Upload Video';
+            }
+        }
+
+        // Auto-fill for testing (remove in production)
+        // document.getElementById('token').value = 'your-test-token-here';
+        // document.getElementById('topicId').value = 'your-test-topic-id-here';
+    </script>
+</body>
+</html>

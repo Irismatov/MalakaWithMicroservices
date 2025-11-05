@@ -1,0 +1,22 @@
+# Docker profile configuration for Malaka Internal Service
+# Activate with: java -jar malaka-internal.jar --spring.profiles.active=docker
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/malaka_internal_db
+    username: postgres
+    password: postgres
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://service-registry:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    hostname: malaka-internal
+
+# Enhanced logging for Docker debugging
+logging:
+  level:
+    com.malaka.aat.internal: DEBUG
+    org.springframework.web: DEBUG

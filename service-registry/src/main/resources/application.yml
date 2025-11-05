@@ -1,0 +1,47 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: service-registry
+
+eureka:
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+  client:
+    # Best Practice: Disable registration for standalone Eureka Server
+    # The server should not register itself as a client
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  server:
+    # Best Practice: Enable self-preservation mode
+    # Protects against network partitions by not evicting services too quickly
+    enable-self-preservation: true
+    # Wait time in ms before server accepts requests (default: 5 minutes)
+    wait-time-in-ms-when-sync-empty: 0
+    # Eviction interval timer in ms (default: 60 seconds)
+    eviction-interval-timer-in-ms: 60000
+    # Renewal threshold percentage (default: 0.85)
+    renewal-percent-threshold: 0.85
+    # Response cache update interval in ms
+    response-cache-update-interval-ms: 30000
+
+# Actuator configuration for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging configuration
+logging:
+  level:
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+    root: INFO

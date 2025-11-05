@@ -1,0 +1,15 @@
+# Docker profile configuration for Service Registry
+# Activate with: java -jar service-registry.jar --spring.profiles.active=docker
+
+eureka:
+  instance:
+    hostname: service-registry
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://service-registry:8761/eureka/
+
+logging:
+  level:
+    com.netflix.eureka: DEBUG
+    com.netflix.discovery: DEBUG

@@ -1,0 +1,89 @@
+server:
+  port: 8082
+
+app:
+  file:
+    path: D:/MalakaFiles/external/images/
+  security:
+    secretKey: Y1ZNbXM1aGZTaWlxbnowMWc3UTFuSTgxZEp5eFdKdjE=
+    accessTokenExpirationInHours: 1
+    refreshTokenExpirationInHours: 24
+
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50000MB
+      max-request-size: 50000MB
+  application:
+    name: malaka-external
+  main:
+    allow-bean-definition-overriding: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.DB2400Dialect
+  datasource:
+    url: jdbc:as400://172.16.111.1/BIMALAKA_EXT;naming=system;translate binary=true;package cache=true;lob threshold=1048576
+    username: UJAXON01
+    password: JaX0n1002
+    driver-class-name: com.ibm.as400.access.AS400JDBCDriver
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.value}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging Configuration
+logging:
+  level:
+    com.malaka.aat.external: DEBUG
+    root: INFO
+
+clients:
+  malaka-internal:
+    base-url: lb://malaka-internal
+    service-account:
+      username: external-service
+      password: ExternalService@2024
+  egov:
+    main-url: https://apimgw.egov.uz:8243
+    mvd-request:
+      address-path: /mvd/services/address/info/pin/v1
+    gcp-request:
+      path: /gcp/docrest/v1
+      lang-id: 1
+      transaction-id: 3
+      is_consent: Y
+      is_photo: N
+      sender: M
+    token:
+      url: https://iskm.egov.uz:9444
+      token-path: /oauth2/token
+      grant-type: password
+      username: gtk-user
+      password: ZRIoHbHl9KEqbyird3oa
+      basic-auth:
+        username: hxeP_G0DgeZ38M7Wr60FlVPtWQYa
+        password: DGOfftPG8Ba60LYFum2d4h9hx6ca

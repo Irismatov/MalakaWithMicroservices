@@ -1,0 +1,46 @@
+package com.malaka.aat.internal.clients;
+
+import com.malaka.aat.core.dto.BaseResponse;
+import com.malaka.aat.core.dto.ResponseWithPagination;
+import com.malaka.aat.internal.dto.group.GroupCreateDto;
+import com.malaka.aat.internal.dto.student_application.StudentApplicationUpdateDto;
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * Feign Client for communicating with malaka-external service.
+ * Used to fetch student applications from the external service.
+ * Uses service account authentication via MalakaExternalClientConfig.
+ */
+@FeignClient(
+        name = "malaka-external",
+        configuration = MalakaExternalClientConfig.class
+)
+public interface MalakaExternalClient {
+
+
+    @GetMapping("/api/external/application")
+    ResponseWithPagination getApplications(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    );
+
+    @PutMapping("/api/external/application/status/{id}")
+    ResponseWithPagination updateStatus(@PathVariable String id,
+                                        @RequestBody @Validated StudentApplicationUpdateDto dto);
+
+    @GetMapping("/api/external/user/students/type/{type}")
+    BaseResponse getStudentsByType(@PathVariable Long type);
+
+
+    @GetMapping("/api/external/user/students/course/{courseId}/type/{type}")
+    BaseResponse getStudentsByCourseIdAndType(@PathVariable String courseId, @PathVariable Long type);
+
+    @PostMapping("/api/external/group")
+    BaseResponse createGroup(@RequestBody GroupCreateDto dto);
+
+    @GetMapping("/api/external/group")
+    ResponseWithPagination getGroupsWithPagination(@RequestParam(value = "page", defaultValue = "0") int page,
+                                                   @RequestParam(value = "size", defaultValue = "10") int size);
+}

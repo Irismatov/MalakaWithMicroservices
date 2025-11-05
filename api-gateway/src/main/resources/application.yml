@@ -1,0 +1,297 @@
+server:
+  port: 8585
+
+spring:
+  application:
+    name: api-gateway
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
+  cloud:
+    gateway:
+      # Enable discovery locator to create routes dynamically from Eureka
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+
+      # CORS Configuration moved to CorsConfig.java bean
+      # Reactive WebFilter handles CORS at a lower level
+
+      # Route definitions
+      routes:
+        # Route for malaka-internal OpenAPI docs
+        - id: malaka-internal-openapi
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/v3/api-docs/malaka-internal
+          filters:
+            - RewritePath=/v3/api-docs/malaka-internal, /v3/api-docs
+
+        # Route for malaka-external OpenAPI docs
+        - id: malaka-external-openapi
+          uri: lb://malaka-external
+          predicates:
+            - Path=/v3/api-docs/malaka-external
+          filters:
+            - RewritePath=/v3/api-docs/malaka-external, /v3/api-docs
+
+        # Route to malaka-external service - All external APIs (must be first for priority)
+        - id: malaka-external
+          uri: lb://malaka-external
+          predicates:
+            - Path=/api/external/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaExternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        # Route to malaka-internal service - Authentication endpoints
+        - id: malaka-internal-auth
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        # Route to malaka-internal service - User management
+        - id: malaka-internal-user
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/user/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        - id: malaka-internal-group
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/group/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        # Route to malaka-internal service - Student Applications (for methodists)
+        - id: malaka-internal-application
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/application/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+        # Route to malaka-internal service - Courses list (plural)
+        - id: malaka-internal-courses
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/courses/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        # Route to malaka-internal service - Course management (singular)
+        - id: malaka-internal-course
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/course/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        # Route to malaka-internal service - Module management
+        - id: malaka-internal-module
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/module/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        # Route to malaka-internal service - Topic management
+        - id: malaka-internal-topic
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/topic/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        # Route to malaka-internal service - Test management
+        - id: malaka-internal-test
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/test/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        # Route to malaka-internal service - File management
+        - id: malaka-internal-file
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/file/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        # Route to malaka-internal service - Citizen information (E-Gov integration)
+        - id: malaka-internal-info
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/info/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        # Route to malaka-internal service - Reference data (spr)
+        - id: malaka-internal-spr
+          uri: lb://malaka-internal
+          predicates:
+            - Path=/api/spr/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: malakaInternalCircuitBreaker
+                fallbackUri: forward:/fallback
+
+        # Route to service-registry
+        - id: service-registry
+          uri: lb://service-registry
+          predicates:
+            - Path=/eureka/**
+          filters:
+            - StripPrefix=1
+
+        # Dynamic routes will be created automatically from Eureka
+        # Example pattern: /SERVICE-NAME/** -> lb://SERVICE-NAME/**
+
+      # Default filters applied to all routes
+      default-filters:
+        - name: Retry
+          args:
+            retries: 3
+            methods: GET,POST
+            series: SERVER_ERROR
+            exceptions: java.io.IOException,java.util.concurrent.TimeoutException
+        - name: CircuitBreaker
+          args:
+            name: defaultCircuitBreaker
+            fallbackUri: forward:/fallback
+        # Rate Limiter (requires Redis) - uncomment when Redis is available
+        # - name: RequestRateLimiter
+        #   args:
+        #     redis-rate-limiter.replenishRate: 10
+        #     redis-rate-limiter.burstCapacity: 20
+        #     redis-rate-limiter.requestedTokens: 1
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.value}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+# Resilience4j Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        wait-duration-in-open-state: 10s
+        failure-rate-threshold: 50
+        event-consumer-buffer-size: 10
+        register-health-indicator: true
+    instances:
+      defaultCircuitBreaker:
+        base-config: default
+      malakaInternalCircuitBreaker:
+        base-config: default
+      malakaExternalCircuitBreaker:
+        base-config: default
+
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 60s
+      long-running:
+        timeout-duration: 60s
+    instances:
+      defaultCircuitBreaker:
+        base-config: default
+      malakaInternalCircuitBreaker:
+        base-config: long-running
+      malakaExternalCircuitBreaker:
+        base-config: long-running
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway,circuitbreakers,circuitbreakerevents
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.gateway.route.RouteDefinitionLocator: INFO
+    reactor.netty.http.client: INFO
+    com.malaka.aat.apigateway: DEBUG
+    root: INFO
+
+# SpringDoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    urls:
+      - name: Malaka Internal
+        url: /v3/api-docs/malaka-internal
+      - name: Malaka External
+        url: /v3/api-docs/malaka-external
+    config-url: /v3/api-docs/swagger-config
+  show-actuator: false
