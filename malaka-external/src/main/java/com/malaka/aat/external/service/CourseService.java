@@ -12,13 +12,13 @@ import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.external.clients.MalakaInternalClient;
 import com.malaka.aat.external.dto.course.CourseDto;
 import com.malaka.aat.external.dto.course.StudentCourseDto;
+import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
+import com.malaka.aat.external.dto.module.ModuleDto;
 import com.malaka.aat.external.enumerators.course.CourseStateForStudent;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
-import com.malaka.aat.external.model.Group;
-import com.malaka.aat.external.model.Student;
-import com.malaka.aat.external.model.StudentEnrollment;
-import com.malaka.aat.external.model.User;
+import com.malaka.aat.external.model.*;
 import com.malaka.aat.external.repository.GroupRepository;
+import com.malaka.aat.external.repository.StudentEnrollmentDetailRepository;
 import com.malaka.aat.external.repository.StudentEnrollmentRepository;
 import com.malaka.aat.external.repository.StudentRepository;
 import com.malaka.aat.external.util.ServiceUtil;
@@ -44,6 +44,7 @@ public class CourseService {
     private final MalakaInternalClient malakaInternalClient;
     private final ObjectMapper objectMapper;
     private final StudentEnrollmentRepository studentEnrollmentRepository;
+    private final StudentEnrollmentDetailRepository studentEnrollmentDetailRepository;
 
     public ResponseWithPagination getCoursesWithPagination(int page, int size) {
         ResponseWithPagination response = new ResponseWithPagination();
@@ -143,7 +144,10 @@ public class CourseService {
         }
         BaseResponse course = malakaInternalClient.getCourseById(group.getCourseId());
         CourseDto courseDto = objectMapper.convertValue(course.getData(), CourseDto.class);
-
+        StudentEnrollment studentEnrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, courseDto.getId(), group)
+                .orElseThrow(() -> new NotFoundException("Enrollment not found for the user"));
+        StudentEnrollmentDetail studentEnrollmentDetail = studentEnrollmentDetailRepository.findLastByStudentEnrollment(studentEnrollment).orElseThrow(() -> new SystemException("Student enrollment detail not found"));
+        courseDto.setStudentEnrollment(new StudentEnrollmentDetailDto(studentEnrollmentDetail));
         response.setData(courseDto);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;

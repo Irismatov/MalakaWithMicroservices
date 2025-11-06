@@ -1,5 +1,6 @@
 package com.malaka.aat.external.dto.course;
 
+import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,4 +22,5 @@ public class CourseDto {
     private Long courseFormat;
     private Long courseStudentType;
     private List<ModuleDto> modules;
+    private StudentEnrollmentDetailDto studentEnrollment;
 }

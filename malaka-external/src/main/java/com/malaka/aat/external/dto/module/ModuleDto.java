@@ -15,13 +15,9 @@ public class ModuleDto {
     private String name;
     private Integer topicCount;
     private Integer order;
-    private String teacherId;
     private String teacherName;
-    private String departmentId;
     private String departmentName;
-    private String facultyId;
     private String facultyName;
-    private String state;
     private String courseId;
     private String courseName;
     private List<TopicDto> topics;
