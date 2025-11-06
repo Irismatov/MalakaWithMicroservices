@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import com.malaka.aat.internal.dto.course.*;
 import com.malaka.aat.internal.service.CourseService;
 
+import java.util.List;
+
 
 @Tag(name = "Kurslar boshqaruvi", description = "Ta'lim kurslarini boshqarish uchun API'lar")
 @RequiredArgsConstructor
@@ -93,6 +95,12 @@ public class CourseController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'METHODIST')")
     public BaseResponse delete(@PathVariable String id) {
         return courseService.delete(id);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @GetMapping("/course/students")
+    public BaseResponse getStudents(@RequestParam List<String> ids) {
+        return courseService.getCoursesForStudents(ids);
     }
 
 }

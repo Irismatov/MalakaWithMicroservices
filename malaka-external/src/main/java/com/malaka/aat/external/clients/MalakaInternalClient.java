@@ -4,6 +4,9 @@ import com.malaka.aat.core.dto.BaseResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /**
  * Feign Client for communicating with malaka-internal service.
@@ -23,4 +26,7 @@ public interface MalakaInternalClient {
      */
     @GetMapping("/api/course/{courseId}")
     BaseResponse getCourseById(@PathVariable("courseId") String courseId);
+
+    @GetMapping("/api/course/students")
+    BaseResponse getStudentCourses(@RequestParam List<String> ids);
 }

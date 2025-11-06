@@ -546,4 +546,13 @@ public class CourseService {
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
     }
+
+    public BaseResponse getCoursesForStudents(List<String> ids) {
+        BaseResponse response = new BaseResponse();
+        List<Course> courses = courseRepository.findByIds(ids);
+        List<CourseDto> list = courses.stream().map(CourseDto::new).toList();
+        response.setData(list);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
+    }
 }

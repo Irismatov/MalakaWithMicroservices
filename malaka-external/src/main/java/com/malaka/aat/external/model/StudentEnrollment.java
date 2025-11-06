@@ -14,7 +14,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Table(name = "student_enrollment")
 @SQLRestriction("is_deleted = 0")
 @SQLDelete(sql = "UPDATE student_enrollment SET is_deleted = 1 WHERE id = ?")
-public class StudentEnrollment {
+public class StudentEnrollment extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", length = 50)
@@ -23,6 +23,11 @@ public class StudentEnrollment {
     @Column(name = "status",  nullable = false)
     private StudentEnrollmentStatus  status;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id", nullable = false)
+    private Student student;
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
     private Group group;
+    @Column(name = "course_id", nullable = false)
+    private String courseId;
 }

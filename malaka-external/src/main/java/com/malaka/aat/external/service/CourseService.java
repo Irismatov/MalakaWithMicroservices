@@ -1,11 +1,133 @@
 package com.malaka.aat.external.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.malaka.aat.core.dto.BaseResponse;
+import com.malaka.aat.core.dto.ResponseStatus;
+import com.malaka.aat.core.dto.ResponseWithPagination;
+import com.malaka.aat.core.exception.custom.NotFoundException;
+import com.malaka.aat.core.exception.custom.SystemException;
+import com.malaka.aat.core.util.ResponseUtil;
+import com.malaka.aat.external.clients.MalakaInternalClient;
+import com.malaka.aat.external.dto.course.CourseDto;
+import com.malaka.aat.external.dto.course.StudentCourseDto;
+import com.malaka.aat.external.enumerators.course.CourseStateForStudent;
+import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
+import com.malaka.aat.external.model.Group;
+import com.malaka.aat.external.model.Student;
+import com.malaka.aat.external.model.StudentEnrollment;
+import com.malaka.aat.external.model.User;
+import com.malaka.aat.external.repository.GroupRepository;
+import com.malaka.aat.external.repository.StudentEnrollmentRepository;
+import com.malaka.aat.external.repository.StudentRepository;
+import com.malaka.aat.external.util.ServiceUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+
+@RequiredArgsConstructor
 @Service
 public class CourseService {
 
 
+    private final SessionService sessionService;
+    private final GroupRepository groupRepository;
+    private final StudentRepository studentRepository;
+    private final MalakaInternalClient malakaInternalClient;
+    private final ObjectMapper objectMapper;
+    private final StudentEnrollmentRepository studentEnrollmentRepository;
+
+    public ResponseWithPagination getCoursesWithPagination(int page, int size) {
+        ResponseWithPagination response = new ResponseWithPagination();
 
 
+        PageRequest pageRequest = ServiceUtil.preparePageRequest(page, size);
+
+
+        List<StudentCourseDto> studentCourses = getStudentCourses();
+        int start = Math.min((int) pageRequest.getOffset(), studentCourses.size());
+        int end = Math.min((start + pageRequest.getPageSize()), studentCourses.size());
+        List<StudentCourseDto> pageContent = studentCourses.subList(start, end);
+        Page<StudentCourseDto> courseDtos = new PageImpl<>(pageContent, pageRequest, studentCourses.size());
+        response.setData(courseDtos, page);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
+    }
+
+
+    private List<StudentCourseDto> getStudentCourses() {
+        User currentUser = sessionService.getCurrentUser();
+
+        Optional<Student> student = studentRepository.findByUser(currentUser);
+        if (student.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<Group> groupsList = groupRepository.findByStudentsContains(student.get());
+        List<String> courseIds = groupsList.stream().map(Group::getCourseId).toList();
+
+        if (courseIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        BaseResponse response = malakaInternalClient.getStudentCourses(courseIds);
+
+        // Handle different response formats
+        Object data = response.getData();
+        List<CourseDto> courseDtos;
+
+        // If data is directly a List
+        @SuppressWarnings("unchecked")
+        List<Object> dataList = (List<Object>) data;
+        courseDtos = dataList.stream()
+                .map(obj -> objectMapper.convertValue(obj, CourseDto.class))
+                .toList();
+
+        List<StudentCourseDto> dtos = new ArrayList<>();
+        courseDtos.stream().map(this::convertCourseDtoToStudentCourse).forEach(dtos::addAll);
+        return dtos;
+    }
+
+    private List<StudentCourseDto> convertCourseDtoToStudentCourse(CourseDto courseDto) {
+        List<StudentCourseDto> studentCourseDtos = new ArrayList<>();
+
+
+
+        User currentUser = sessionService.getCurrentUser();
+        Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new SystemException("Student not found "));
+        List<Group> groups = groupRepository.findByStudentsContains(student);
+        groups.forEach(group -> {
+            Optional<StudentEnrollment> byStudentAndCourseId =
+                    studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, courseDto.getId(), group);
+
+            StudentCourseDto studentCourseDto = new StudentCourseDto();
+            studentCourseDto.setId(courseDto.getId());
+            studentCourseDto.setName(courseDto.getName());
+            studentCourseDto.setDescription(courseDto.getDescription());
+            studentCourseDto.setImgUrl(courseDto.getImgUrl());
+            studentCourseDto.setDescription(courseDto.getDescription());
+            studentCourseDto.setModuleCount(courseDto.getModuleCount());
+            studentCourseDto.setDescription(courseDto.getDescription());
+            studentCourseDto.setGroupId(group.getId());
+
+            if (byStudentAndCourseId.isEmpty()) {
+                studentCourseDto.setStatus(CourseStateForStudent.NEW.getValue());
+            } else if (byStudentAndCourseId.get().getStatus() == StudentEnrollmentStatus.STARTED) {
+                studentCourseDto.setStatus(CourseStateForStudent.ENROLLING.getValue());
+            } else if (byStudentAndCourseId.get().getStatus() == StudentEnrollmentStatus.FINISHED) {
+                studentCourseDto.setStatus(CourseStateForStudent.FINISHED.getValue());
+            } else if (byStudentAndCourseId.get().getStatus() == StudentEnrollmentStatus.EXPIRED) {
+                studentCourseDto.setStatus(CourseStateForStudent.EXPIRED.getValue());
+            }
+
+            studentCourseDtos.add(studentCourseDto);
+        });
+        return studentCourseDtos;
+    }
 }

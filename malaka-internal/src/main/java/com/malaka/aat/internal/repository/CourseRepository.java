@@ -21,4 +21,7 @@ public interface CourseRepository extends JpaRepository<Course, String>, JpaSpec
     // Find courses where user is assigned as teacher in any module
     @Query("SELECT DISTINCT c FROM Course c JOIN c.modules m WHERE m.teacher.id = :teacherId")
     List<Course> findCoursesByTeacherId(@Param("teacherId") String teacherId);
+
+    @Query("FROM Course c WHERE c.id in :ids")
+    List<Course> findByIds(List<String> ids);
 }
