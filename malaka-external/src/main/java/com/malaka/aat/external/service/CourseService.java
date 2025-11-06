@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseStatus;
 import com.malaka.aat.core.dto.ResponseWithPagination;
+import com.malaka.aat.core.exception.custom.BadRequestException;
 import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
@@ -129,5 +130,22 @@ public class CourseService {
             studentCourseDtos.add(studentCourseDto);
         });
         return studentCourseDtos;
+    }
+
+    public BaseResponse getCourseById(String groupId) {
+        BaseResponse response = new BaseResponse();
+        User currentUser = sessionService.getCurrentUser();
+        Student student = studentRepository.findByUser
+                (currentUser).orElseThrow(() -> new NotFoundException("Student not found for user with pinfl: " + currentUser.getPinfl()));
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException("Group not found for user with id: " + groupId));
+        if (!group.getStudents().contains(student)) {
+            throw new BadRequestException("The user does not belong to this group");
+        }
+        BaseResponse course = malakaInternalClient.getCourseById(group.getCourseId());
+        CourseDto courseDto = objectMapper.convertValue(course.getData(), CourseDto.class);
+
+        response.setData(courseDto);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
     }
 }

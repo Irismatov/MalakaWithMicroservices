@@ -3,10 +3,7 @@ package com.malaka.aat.external.controller;
 import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.external.service.StudentEnrollmentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/external")
@@ -15,10 +12,9 @@ public class StudentEnrollmentController {
 
     private final StudentEnrollmentService studentEnrollmentService;
 
-
-    @GetMapping("/enrollment/course/{courseId}")
-    public BaseResponse getEnrollmentByCourseId(@PathVariable String courseId) {
-        return studentEnrollmentService.findEnrollmentByCourseId(courseId);
+    @PostMapping("/enrollment/group/{groupId}")
+    public BaseResponse updateOrCreateStudentEnrollment(@PathVariable String groupId) {
+        return studentEnrollmentService.updateOrCreateStudentEnrollment(groupId);
     }
 
 
