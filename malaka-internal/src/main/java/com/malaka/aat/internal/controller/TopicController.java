@@ -4,6 +4,7 @@ import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.internal.dto.topic.ChunkUploadResponseDto;
 import com.malaka.aat.internal.dto.topic.InitChunkUploadDto;
 import com.malaka.aat.internal.dto.topic.TopicUpdateDto;
+import com.malaka.aat.internal.model.BaseEntity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.Path;
@@ -150,6 +151,15 @@ public class TopicController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                 .body(topicLectureAsResource);
     }
+
+
+    @GetMapping("/{id}/test")
+    public BaseResponse getTestFile(
+            @PathVariable String id
+    ) {
+        return topicService.getTopicTestById(id);
+    }
+
 
     @Operation(summary = "Mavzuni ID bo'yicha olish",
             description = "Mavzu ma'lumotlarini ID orqali olish")

@@ -46,5 +46,7 @@ public interface MalakaInternalClient {
     @GetMapping("/api/topic/{topicId}/lecture")
     ResponseEntity<Resource> lectureFile(@PathVariable String topicId);
 
+    @GetMapping("/api/topic/{topicId}/test")
+    BaseResponse getTest(@PathVariable String topicId);
 
 }

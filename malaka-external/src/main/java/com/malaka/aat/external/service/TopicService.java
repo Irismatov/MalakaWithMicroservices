@@ -2,13 +2,16 @@ package com.malaka.aat.external.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.malaka.aat.core.dto.BaseResponse;
+import com.malaka.aat.core.dto.ResponseStatus;
 import com.malaka.aat.core.exception.custom.AuthException;
 import com.malaka.aat.core.exception.custom.BadRequestException;
 import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
+import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.external.clients.MalakaInternalClient;
 import com.malaka.aat.external.dto.course.CourseDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
+import com.malaka.aat.external.dto.test.TestDto;
 import com.malaka.aat.external.model.*;
 import com.malaka.aat.external.repository.GroupRepository;
 import com.malaka.aat.external.repository.StudentEnrollmentDetailRepository;
@@ -49,6 +52,19 @@ public class TopicService {
         validateIfTopicAccessibleToStudent(groupId, topicId);
 
         return malakaInternalClient.lectureFile(topicId);
+    }
+
+    public BaseResponse getTopicTest(String groupId, String topicId) {
+        validateIfTopicAccessibleToStudent(groupId, topicId);
+        BaseResponse response = new BaseResponse();
+        BaseResponse responseFromInternal = malakaInternalClient.getTest(topicId);
+        if (responseFromInternal.getResultCode() != 0) {
+            return responseFromInternal;
+        }
+        TestDto testDto = objectMapper.convertValue(responseFromInternal.getData(), TestDto.class);
+        response.setData(testDto);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
     }
 
 

@@ -1,5 +1,6 @@
 package com.malaka.aat.external.controller;
 
+import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.external.service.TopicService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -36,5 +37,10 @@ public class TopicController {
             @PathVariable String topicId
     ) {
         return topicService.getLectureFile(groupId, topicId);
+    }
+
+    @GetMapping("/group/{groupId}/topic/{topicId}/test")
+    public BaseResponse test(@PathVariable String groupId, @PathVariable String topicId) {
+        return topicService.getTopicTest(groupId, topicId);
     }
 }

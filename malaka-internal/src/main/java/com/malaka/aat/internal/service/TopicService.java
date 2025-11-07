@@ -8,6 +8,7 @@ import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.internal.dto.module.ModuleDto;
+import com.malaka.aat.internal.dto.test.TestDto;
 import com.malaka.aat.internal.dto.topic.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -751,4 +752,13 @@ public class TopicService {
     }
 
 
+    public BaseResponse getTopicTestById(String id) {
+        BaseResponse response = new BaseResponse();
+        Topic byId = findById(id);
+        Test test = byId.getTest();
+        TestDto testDto = new TestDto(test);
+        response.setData(testDto);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
+    }
 }
