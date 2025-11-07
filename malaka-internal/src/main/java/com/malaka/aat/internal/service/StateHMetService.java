@@ -1,5 +1,7 @@
 package com.malaka.aat.internal.service;
 
+import com.malaka.aat.internal.enumerators.model.ModuleState;
+import com.malaka.aat.internal.model.Module;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.malaka.aat.internal.enumerators.course.CourseState;
@@ -18,6 +20,20 @@ public class StateHMetService {
 
     private final SessionService sessionService;
     private final StateHMetRepository stateHMetRepository;
+
+    public void saveStateForModule(Module module, ModuleState state, String description) {
+        StateHMet stateHMet = new StateHMet();
+        stateHMet.setBodyId("MODULE_" + module.getId());
+        stateHMet.setModule(module);
+        stateHMet.setStateNm(state.toString());
+        stateHMet.setStateCd(state.getValue());
+        stateHMet.setDescriptions(description);
+        User currentUser = sessionService.getCurrentUser();
+        stateHMet.setAplcRppnNm(ServiceUtil.extractFioFromUser(currentUser));
+        stateHMet.setAplcPnfl(currentUser.getPinfl());
+        currentUser.setPhone(currentUser.getPhone());
+        stateHMetRepository.save(stateHMet);
+    }
 
     public void saveStateForCourse(Course course, CourseState state) {
         StateHMet stateHMet = new StateHMet();

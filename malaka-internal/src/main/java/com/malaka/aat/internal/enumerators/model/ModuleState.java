@@ -59,8 +59,8 @@ public enum ModuleState {
             }
             case SENT -> {
                 // SENT can be set from NEW state (teacher confirms module is filled)
-                if (currentState == null || !currentState.equals("001")) {
-                    throw new BadRequestException("Cannot set module " + module.getId() + " to SENT state. Current state must be NEW (001).");
+                if (currentState == null || (!currentState.equals("001") && !currentState.equals("004")) ) {
+                    throw new BadRequestException("Cannot set module " + module.getId() + " to SENT state. Current state must be NEW (001) or REJECTED (004).");
                 }
             }
             case APPROVED -> {

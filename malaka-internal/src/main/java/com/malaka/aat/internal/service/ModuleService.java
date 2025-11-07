@@ -45,6 +45,7 @@ public class ModuleService {
     private final TopicRepository topicRepository;
     private final SessionService sessionService;
     private final UserRepository userRepository;
+    private final StateHMetService stateHMetService;
 
     public BaseResponse create(ModuleCreateDto dto) {
         BaseResponse response = new BaseResponse();
@@ -236,6 +237,13 @@ public class ModuleService {
 
         // Save module
         Module updatedModule = moduleRepository.save(module);
+
+        if (targetState.equals("004")) {
+            if (dto.getDescription() == null) {
+                throw new BadRequestException("Description is required");
+            }
+            stateHMetService.saveStateForModule(module, ModuleState.REJECTED, dto.getDescription());
+        }
 
         // Prepare response with module DTO
         CourseDto courseDto = new CourseDto(updatedModule.getCourse());

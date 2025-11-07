@@ -2,6 +2,7 @@ package com.malaka.aat.internal.model.spr;
 
 import com.malaka.aat.internal.model.BaseEntity;
 import com.malaka.aat.internal.model.Course;
+import com.malaka.aat.internal.model.Module;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -53,5 +54,9 @@ public class StateHMet extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "corse_id", referencedColumnName = "id")
     private Course course;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "module_id", referencedColumnName = "id")
+    private Module module;
 
 }

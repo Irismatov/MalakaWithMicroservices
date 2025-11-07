@@ -3,6 +3,7 @@ package com.malaka.aat.internal.model;
 
 import com.malaka.aat.internal.model.spr.DepartmentSpr;
 import com.malaka.aat.internal.model.spr.FacultySpr;
+import com.malaka.aat.internal.model.spr.StateHMet;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,4 +46,6 @@ public class Module extends BaseEntity {
     private List<Topic> topics;
     @JoinColumn(name = "module_state")
     private String moduleState;
+    @OneToMany(mappedBy = "module", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<StateHMet> stateHMets;
 }

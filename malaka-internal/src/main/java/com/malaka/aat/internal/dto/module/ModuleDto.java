@@ -3,6 +3,7 @@ package com.malaka.aat.internal.dto.module;
 import com.malaka.aat.internal.model.Module;
 import com.malaka.aat.internal.dto.topic.TopicDto;
 import com.malaka.aat.internal.model.Topic;
+import com.malaka.aat.internal.model.spr.StateHMet;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +26,7 @@ public class ModuleDto {
     private String state;
     private String courseId;
     private String courseName;
+    private String rejectionDescription;
     private List<TopicDto> topics;
 
     public ModuleDto(Module module) {
@@ -52,6 +54,14 @@ public class ModuleDto {
             this.topics = module.getTopics().stream()
                     .sorted(Comparator.comparing(Topic::getOrder, Comparator.nullsLast(Comparator.naturalOrder())))
                     .map(TopicDto::new).toList();
+        }
+
+        if (module.getModuleState().equals("004")) {
+            List<StateHMet> stateHis = module.getStateHMets().stream().sorted(Comparator.comparing(StateHMet::getInstime)).toList();
+            if (!stateHis.isEmpty()) {
+                StateHMet stateHMet = stateHis.get(stateHis.size() - 1);
+                this.rejectionDescription = stateHMet.getDescriptions();
+            }
         }
     }
 }
