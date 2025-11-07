@@ -14,24 +14,27 @@ public class TopicController {
 
     private final TopicService topicService;
 
-    @GetMapping("/topic/{topicId}/content/stream")
+    @GetMapping("/group/{groupId}/topic/{topicId}/content/stream")
     public ResponseEntity<Resource> streamTopicContent(
+            @PathVariable String groupId,
             @PathVariable String topicId,
             @RequestHeader(value = "Range", required = false) String rangeHeader) {
-        return topicService.streamTopicContent(topicId, rangeHeader);
+        return topicService.streamTopicContent(groupId, topicId, rangeHeader);
     }
 
-    @GetMapping("/topic/{topicId}/presentation")
+    @GetMapping("/group/{groupId}/topic/{topicId}/presentation")
     public ResponseEntity<Resource> presentationFile(
+            @PathVariable String groupId,
             @PathVariable String topicId
     ) {
-        return topicService.getPresentationFile(topicId);
+        return topicService.getPresentationFile(groupId, topicId);
     }
 
-    @GetMapping("/topic/{topicId}/lecture")
+    @GetMapping("/group/{groupId}/topic/{topicId}/lecture")
     public ResponseEntity<Resource> lectureFile(
+            @PathVariable String groupId,
             @PathVariable String topicId
     ) {
-        return topicService.getLectureFile(topicId);
+        return topicService.getLectureFile(groupId, topicId);
     }
 }
