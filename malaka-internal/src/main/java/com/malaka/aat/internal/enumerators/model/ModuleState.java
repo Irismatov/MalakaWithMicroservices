@@ -18,20 +18,12 @@ public enum ModuleState {
     private final String value;
     private final String description;
 
-    /**
-     * Set module state using ModuleState enum
-     * @param module The module to update
-     * @param state The target state
-     */
+
     public static void setState(Module module, ModuleState state) {
         validateAndSet(module, state);
     }
 
-    /**
-     * Set module state using string value
-     * @param module The module to update
-     * @param state The target state value (e.g., "001", "002")
-     */
+
     public static void setState(Module module, String state) {
         Optional<ModuleState> first = Arrays.stream(ModuleState.values())
                 .filter(s -> s.value.equals(state))
@@ -44,9 +36,7 @@ public enum ModuleState {
         }
     }
 
-    /**
-     * Validate state transition and set the new state
-     */
+
     private static void validateAndSet(Module module, ModuleState state) {
         String currentState = module.getModuleState();
 
@@ -81,9 +71,6 @@ public enum ModuleState {
         module.setModuleState(state.getValue());
     }
 
-    /**
-     * Get ModuleState enum from string value
-     */
     public static Optional<ModuleState> fromValue(String value) {
         return Arrays.stream(ModuleState.values())
                 .filter(s -> s.value.equals(value))
