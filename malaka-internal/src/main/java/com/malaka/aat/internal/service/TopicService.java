@@ -594,10 +594,7 @@ public class TopicService {
     }
 
 
-    /**
-     * Stream video/audio content with HTTP Range support for seeking and buffering
-     * This method handles partial content requests (HTTP 206) for video players
-     */
+
     public ResponseEntity<Resource> streamTopicContent(String topicId, String rangeHeader) {
         try {
             // Get topic and validate

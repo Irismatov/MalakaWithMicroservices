@@ -19,6 +19,10 @@ public class StudentTestAttempt extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false, length = 50)
     private String id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Student student;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Group group;
     @Column(name = "course_id")
     private String courseId;
     @Column(name = "module_id")

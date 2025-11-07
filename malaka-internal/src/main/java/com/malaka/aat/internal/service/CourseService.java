@@ -5,6 +5,7 @@ import com.malaka.aat.core.dto.ResponseStatus;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.core.exception.custom.*;
 import com.malaka.aat.core.util.ResponseUtil;
+import com.malaka.aat.internal.repository.TopicRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,8 @@ public class CourseService {
     @Lazy
     @Autowired
     private CourseService self;
+    @Autowired
+    private TopicRepository topicRepository;
 
     @Transactional
     public BaseResponse save(CourseCreateDto dto) {
@@ -554,5 +557,19 @@ public class CourseService {
         response.setData(list);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
+    }
+
+    public BaseResponse getCourseByTopicId(String topicId) {
+        try {
+            BaseResponse response = new BaseResponse();
+            Topic topic = topicRepository.findById(topicId).orElseThrow(() -> new NotFoundException("Topic not found with id: " + topicId));
+            Course course = topic.getModule().getCourse();
+            CourseDto courseDto = new CourseDto(course);
+            response.setData(courseDto);
+            ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+            return response;
+        } catch (Exception e) {
+            throw new NotFoundException("Course not found for topic id " + topicId);
+        }
     }
 }

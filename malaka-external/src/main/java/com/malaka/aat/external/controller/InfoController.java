@@ -21,7 +21,7 @@ public class InfoController {
 
     @Operation(summary = "PINFL bo'yicha fuqaro ma'lumotlarini olish",
             description = "E-Gov GCP API orqali PINFL (14 raqamli shaxsiy identifikatsiya raqami) bo'yicha fuqaro ma'lumotlarini olish. Natija keshlanadi")
-    @GetMapping("/{pinfl}")
+    @GetMapping("/pinfl/{pinfl}")
     public BaseResponse getInfoFromPinfl(@PathVariable String pinfl) {
         return infoService.getInfoFromPinfl(pinfl);
     }
