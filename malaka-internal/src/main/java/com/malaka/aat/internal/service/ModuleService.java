@@ -113,6 +113,11 @@ public class ModuleService {
 
         // Update basic fields
         if (dto.getName() != null) {
+            Optional<Module> existingModule = moduleRepository
+                    .findByNameAndCourseId(dto.getName(), module.getCourse().getId());
+            if (existingModule.isPresent()) {
+                throw new AlreadyExistsException("Module with name '" + dto.getName() + "' already exists in this course");
+            }
             module.setName(dto.getName());
         }
 
