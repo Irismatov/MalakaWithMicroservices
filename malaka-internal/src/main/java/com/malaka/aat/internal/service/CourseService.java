@@ -109,7 +109,7 @@ public class CourseService {
             course.setFile(file);
             Course savedCourse = courseRepository.save(course);
             savedCourse.setFile(file);
-            stateHMetService.saveStateForCourse(course, CourseState.findByValue(course.getState()));
+            stateHMetService.saveStateForCourse(course, CourseState.findByValue(course.getState()), null);
 
 
             CourseDto courseDto = new CourseDto(savedCourse);
@@ -226,7 +226,7 @@ public class CourseService {
             }
             case "003" -> {
                 // SEND TO FACULTY HEAD
-                course =  self.getCourseToFacultyHead(id);
+                course =  self.getCourseToMethodist(id);
 
                 // Validate that ALL modules are in SENT state (002) before sending to faculty head
                 boolean allModulesSent = course.getModules().stream()
@@ -249,15 +249,22 @@ public class CourseService {
                 // Save modules with updated states
                 moduleRepository.saveAll(course.getModules());
                 course = courseRepository.save(course);
+            } case "007" -> {
+                course =  self.getCourseToMethodist(id);
+                CourseState.setState(course, dto.getState());
+                course = courseRepository.save(course);
             }
             default -> {
+                if (dto.getState().equals("004") && dto.getDescription() == null) {
+                    throw new BadRequestException("Description is required");
+                }
                 course = self.getCourseToFacultyHead(id);
                 CourseState.setState(course, dto.getState());
                 course = courseRepository.save(course);
             }
         }
 
-        stateHMetService.saveStateForCourse(course, CourseState.findByValue(course.getState()));
+        stateHMetService.saveStateForCourse(course, CourseState.findByValue(course.getState()), dto.getDescription());
         response.setData(new CourseDto(course));
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;

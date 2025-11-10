@@ -335,14 +335,15 @@ public class TopicService {
 
     private void validateModuleStateForUploadOrUpdate(Module module) {
         String moduleState = module.getModuleState();
+        String courseState = module.getCourse().getState();
 
-        if (moduleState == null || !moduleState.equals("001")) {
-            throw new BadRequestException(
-                    "Cannot upload files to module '" + module.getName() +
-                            "'. Module must be in NEW state (001). Current state: " +
-                            (moduleState == null ? "null" : moduleState)
-            );
+        if (courseState.equals("004")) {
+            return;
+        } else if (courseState.equals("002") && moduleState.equals("001")) {
+            return;
         }
+
+        throw new BadRequestException("Module state or course state not valid");
     }
 
     public BaseResponse uploadPresentationFile(String topicId, MultipartFile file) {

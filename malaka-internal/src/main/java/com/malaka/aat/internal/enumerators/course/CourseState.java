@@ -56,12 +56,12 @@ public enum CourseState {
                 }
             }
             case REJECTED -> {
-                if (!course.getState().equals("002")) {
+                if (!course.getState().equals("003")) {
                     throw new BadRequestException("Can't update course: " + course.getId() + " to a state: " + state);
                 }
             }
             case APPROVED -> {
-                if (!course.getState().equals("003")) {
+                if (!course.getState().equals("003") &&  !course.getState().equals("007")) {
                     throw new BadRequestException("Can't update course: " + course.getId() + " to a state: " + state);
                 }
             }

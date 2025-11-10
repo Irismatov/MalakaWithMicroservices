@@ -21,12 +21,13 @@ public class StateHMetService {
     private final SessionService sessionService;
     private final StateHMetRepository stateHMetRepository;
 
-    public void saveStateForCourse(Course course, CourseState state) {
+    public void saveStateForCourse(Course course, CourseState state, String description) {
         StateHMet stateHMet = new StateHMet();
         stateHMet.setBodyId("COURSE" +  "_" + course.getId());
         stateHMet.setCourse(course);
         stateHMet.setStateNm(state.toString());
         stateHMet.setStateCd(state.getValue());
+        stateHMet.setDescriptions(description);
         User currentUser = sessionService.getCurrentUser();
         stateHMet.setAplcRppnNm(ServiceUtil.extractFioFromUser(currentUser));
         stateHMet.setAplcPnfl(currentUser.getPinfl());

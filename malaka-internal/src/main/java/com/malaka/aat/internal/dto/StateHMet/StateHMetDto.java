@@ -15,9 +15,11 @@ public class StateHMetDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime time;
     private String state;
+    private String description;
 
     public StateHMetDto(StateHMet stateHMet) {
         this.time = stateHMet.getInstime();
         this.state = stateHMet.getStateCd();
+        this.description = stateHMet.getDescriptions();
     }
 }
