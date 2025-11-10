@@ -4,12 +4,14 @@ package com.malaka.aat.internal.model;
 import com.malaka.aat.internal.model.spr.DepartmentSpr;
 import com.malaka.aat.internal.model.spr.FacultySpr;
 import com.malaka.aat.internal.model.spr.StateHMet;
+import com.malaka.aat.internal.model.spr.StateHModule;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Table(name = "module")
@@ -46,6 +48,6 @@ public class Module extends BaseEntity {
     private List<Topic> topics;
     @JoinColumn(name = "module_state")
     private String moduleState;
-    @OneToMany(mappedBy = "module", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<StateHMet> stateHMets;
+    @OneToMany(mappedBy = "module", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<StateHModule> stateHistory = new ArrayList<>();
 }

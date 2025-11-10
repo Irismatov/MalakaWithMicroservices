@@ -1,12 +1,15 @@
 package com.malaka.aat.internal.dto.module;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.malaka.aat.internal.model.Module;
 import com.malaka.aat.internal.dto.topic.TopicDto;
 import com.malaka.aat.internal.model.Topic;
 import com.malaka.aat.internal.model.spr.StateHMet;
+import com.malaka.aat.internal.model.spr.StateHModule;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -27,10 +30,14 @@ public class ModuleDto {
     private String courseId;
     private String courseName;
     private String rejectionDescription;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime instime;
     private List<TopicDto> topics;
+    private List<ModuleHDto> history;
 
     public ModuleDto(Module module) {
         this.id = module.getId();
+        this.instime = module.getInstime();
         this.name = module.getName();
         this.topicCount = module.getTopicCount();
         this.order = module.getOrder();
@@ -56,12 +63,8 @@ public class ModuleDto {
                     .map(TopicDto::new).toList();
         }
 
-        if (module.getModuleState().equals("004")) {
-            List<StateHMet> stateHis = module.getStateHMets().stream().sorted(Comparator.comparing(StateHMet::getInstime)).toList();
-            if (!stateHis.isEmpty()) {
-                StateHMet stateHMet = stateHis.get(stateHis.size() - 1);
-                this.rejectionDescription = stateHMet.getDescriptions();
-            }
+        if (module.getStateHistory() != null &&  !module.getStateHistory().isEmpty()) {
+            this.history = module.getStateHistory().stream().map(ModuleHDto::new).toList();
         }
     }
 }

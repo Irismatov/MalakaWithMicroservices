@@ -70,6 +70,8 @@ public class CourseService {
     private CourseService self;
     @Autowired
     private TopicRepository topicRepository;
+    @Autowired
+    private StateHModuleService stateHModuleService;
 
     @Transactional
     public BaseResponse save(CourseCreateDto dto) {
@@ -323,14 +325,18 @@ public class CourseService {
             module.setDepartment(department);
         }
 
-        // Save module
+
         Module savedModule = moduleRepository.save(module);
 
+        StateHModule stateHModule = stateHModuleService.createStateHModule(savedModule, ModuleState.NEW, null);
+        savedModule.getStateHistory().add(stateHModule);
         // Get course with all modules and return CourseDto
         Course courseWithModules = savedModule.getCourse();
         courseWithModules.getModules().add(savedModule);
-        CourseDto courseDto = new CourseDto(courseWithModules);
 
+
+
+        CourseDto courseDto = new CourseDto(courseWithModules);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         response.setData(courseDto);
         return response;

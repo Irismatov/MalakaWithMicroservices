@@ -1,5 +1,6 @@
 package com.malaka.aat.internal.dto.course;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.malaka.aat.internal.dto.StateHMet.StateHMetDto;
 import com.malaka.aat.internal.dto.module.ModuleDto;
 import com.malaka.aat.internal.model.BaseEntity;
@@ -10,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -27,6 +29,8 @@ public class CourseDto {
     private Long courseType;
     private Long courseFormat;
     private Long courseStudentType;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime instime;
     private List<ModuleDto> modules;
     private List<StateHMetDto> history;
 
@@ -36,6 +40,7 @@ public class CourseDto {
         this.description = course.getDescription();
         this.moduleCount = course.getModuleCount();
         this.lang = course.getLang().getId();
+        this.instime = course.getInstime();
         if (course.getCourseType() != null) {
             this.courseType = course.getCourseType().getId();
         }

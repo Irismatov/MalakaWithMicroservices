@@ -7,6 +7,7 @@ import com.malaka.aat.core.exception.custom.AuthException;
 import com.malaka.aat.core.exception.custom.BadRequestException;
 import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.util.ResponseUtil;
+import com.malaka.aat.internal.model.spr.StateHModule;
 import com.malaka.aat.internal.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,10 +30,7 @@ import com.malaka.aat.internal.repository.TopicRepository;
 import com.malaka.aat.internal.repository.spr.DepartmentSprRepository;
 import com.malaka.aat.internal.repository.spr.FacultySprRepository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -45,65 +43,66 @@ public class ModuleService {
     private final TopicRepository topicRepository;
     private final SessionService sessionService;
     private final UserRepository userRepository;
-    private final StateHMetService stateHMetService;
+    private final StateHModuleService stateHModuleService;
 
-    public BaseResponse create(ModuleCreateDto dto) {
-        BaseResponse response = new BaseResponse();
-
-        // Validate course exists
-        Course course = courseService.findById(dto.getCourseId());
-
-        // Check if module name is unique within the course
-        Optional<Module> existingModule = moduleRepository.findByNameAndCourseId(dto.getName(), dto.getCourseId());
-        if (existingModule.isPresent()) {
-            throw new AlreadyExistsException("Module with name '" + dto.getName() + "' already exists in this course");
-        }
-
-        // Check if module order has not been created
-        Optional<Module> any =
-                course.getModules().stream().filter(m -> Objects.equals(m.getOrder(), dto.getOrder())).findAny();
-        if (any.isPresent()) {
-            throw new AlreadyExistsException("Module already exists with this order: " + dto.getOrder());
-        }
-
-        // Validate module count
-        Long currentModuleCount = moduleRepository.countByCourseId(dto.getCourseId());
-        if (currentModuleCount >= course.getModuleCount()) {
-            throw new NotFoundException("Cannot add more modules. Course allows maximum " + course.getModuleCount() + " modules");
-        }
-
-        // Validate order number
-        if (dto.getOrder() > course.getModuleCount()) {
-            throw new NotFoundException("Invalid order number. Order must not exceed course module count of " + course.getModuleCount());
-        }
-
-        // Validate teacher exists and has TEACHER role
-        User teacher = userRepository.findById(dto.getTeacherId()).orElseThrow(() -> new NotFoundException("Teacher not found wit id " + dto.getTeacherId()) );
-        boolean hasTeacherRole = teacher.getRoles().stream()
-                .anyMatch(role -> "TEACHER".equalsIgnoreCase(role.getName()));
-
-        if (!hasTeacherRole) {
-            throw new BadRequestException("User with ID " + dto.getTeacherId() + " does not have TEACHER role");
-        }
-
-        // Create and save module
-        Module module = ModuleCreateDto.mapDtoToEntity(dto);
-        module.setCourse(course);
-        module.setOrder(dto.getOrder());
-        module.setTeacher(teacher);
-
-        // Set initial state to NEW (001)
-        module.setModuleState("001");
-
-        Module savedModule = moduleRepository.save(module);
-
-        // Prepare response
-        ModuleDto moduleDto = new ModuleDto(savedModule);
-
-        response.setData(moduleDto);
-        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
-        return response;
-    }
+//    public BaseResponse create(ModuleCreateDto dto) {
+//        BaseResponse response = new BaseResponse();
+//
+//        // Validate course exists
+//        Course course = courseService.findById(dto.getCourseId());
+//
+//        // Check if module name is unique within the course
+//        Optional<Module> existingModule = moduleRepository.findByNameAndCourseId(dto.getName(), dto.getCourseId());
+//        if (existingModule.isPresent()) {
+//            throw new AlreadyExistsException("Module with name '" + dto.getName() + "' already exists in this course");
+//        }
+//
+//        // Check if module order has not been created
+//        Optional<Module> any =
+//                course.getModules().stream().filter(m -> Objects.equals(m.getOrder(), dto.getOrder())).findAny();
+//        if (any.isPresent()) {
+//            throw new AlreadyExistsException("Module already exists with this order: " + dto.getOrder());
+//        }
+//
+//        // Validate module count
+//        Long currentModuleCount = moduleRepository.countByCourseId(dto.getCourseId());
+//        if (currentModuleCount >= course.getModuleCount()) {
+//            throw new NotFoundException("Cannot add more modules. Course allows maximum " + course.getModuleCount() + " modules");
+//        }
+//
+//        // Validate order number
+//        if (dto.getOrder() > course.getModuleCount()) {
+//            throw new NotFoundException("Invalid order number. Order must not exceed course module count of " + course.getModuleCount());
+//        }
+//
+//        // Validate teacher exists and has TEACHER role
+//        User teacher = userRepository.findById(dto.getTeacherId()).orElseThrow(() -> new NotFoundException("Teacher not found wit id " + dto.getTeacherId()) );
+//        boolean hasTeacherRole = teacher.getRoles().stream()
+//                .anyMatch(role -> "TEACHER".equalsIgnoreCase(role.getName()));
+//
+//        if (!hasTeacherRole) {
+//            throw new BadRequestException("User with ID " + dto.getTeacherId() + " does not have TEACHER role");
+//        }
+//
+//        // Create and save module
+//        Module module = ModuleCreateDto.mapDtoToEntity(dto);
+//        module.setCourse(course);
+//        module.setOrder(dto.getOrder());
+//        module.setTeacher(teacher);
+//
+//        // Set initial state to NEW (001)
+//        module.setModuleState("001");
+//        stateHModuleService.createStateHModule(module, ModuleState.NEW, null);
+//
+//        Module savedModule = moduleRepository.save(module);
+//
+//        // Prepare response
+//        ModuleDto moduleDto = new ModuleDto(savedModule);
+//
+//        response.setData(moduleDto);
+//        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+//        return response;
+//    }
 
     public BaseResponse update(String moduleId, ModuleUpdateDto dto) {
         BaseResponse response = new BaseResponse();
@@ -235,22 +234,22 @@ public class ModuleService {
         // Use ModuleState enum to validate and set state
         ModuleState.setState(module, targetState);
 
-        // Save module
-        Module updatedModule = moduleRepository.save(module);
-
         if (targetState.equals("004")) {
             if (dto.getDescription() == null) {
                 throw new BadRequestException("Description is required");
             }
-            stateHMetService.saveStateForModule(module, ModuleState.REJECTED, dto.getDescription());
         }
 
-        // Prepare response with module DTO
-        CourseDto courseDto = new CourseDto(updatedModule.getCourse());
 
-        response.setData(courseDto);
-        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
-        return response;
+        ModuleState moduleState = Arrays.stream(ModuleState.values()).filter(f -> f.getValue().equals(dto.getState())).findFirst().orElseThrow();
+        stateHModuleService.createStateHModule(module, moduleState, dto.getDescription());
+
+        // Save module
+        Module updatedModule = moduleRepository.saveAndFlush(module);
+
+
+        // Prepare response with module DTO
+        return courseService.getCourseById(updatedModule.getCourse().getId());
     }
 
     /**
