@@ -1,6 +1,7 @@
 package com.malaka.aat.internal.service;
 
 import com.malaka.aat.core.dto.BaseResponse;
+import com.malaka.aat.core.dto.Pagination;
 import com.malaka.aat.core.dto.ResponseStatus;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.core.exception.custom.*;
@@ -15,6 +16,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -344,162 +346,74 @@ public class CourseService {
 
     public ResponseWithPagination getCourses(int page, int size, CourseFilterDto filterDto) {
         ResponseWithPagination response = new ResponseWithPagination();
-        PageRequest pageRequest = ServiceUtil.preparePageRequest(page, size);
 
-        // Get current authenticated user
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new AuthException();
-        }
-
-
-        String userId = sessionService.getCurrentUserId();
-
-        // Get user with roles
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found with id: " + userId));
+        User currentUser = sessionService.getCurrentUser();
 
         // Check user roles
-        boolean isAdmin = user.getRoles().stream()
+        boolean isAdmin = currentUser.getRoles().stream()
                 .anyMatch(role -> "ADMIN".equals(role.getName()) || "SUPER_ADMIN".equals(role.getName()));
-        boolean isMethodist = user.getRoles().stream()
+        boolean isMethodist = currentUser.getRoles().stream()
                 .anyMatch(role -> "METHODIST".equals(role.getName()));
-        boolean isTeacher = user.getRoles().stream()
+        boolean isTeacher = currentUser.getRoles().stream()
                 .anyMatch(role -> "TEACHER".equals(role.getName()));
-        boolean isFacultyHead = user.getRoles().stream()
+        boolean isFacultyHead = currentUser.getRoles().stream()
                 .anyMatch(role -> "FACULTY_HEAD".equals(role.getName()));
 
-        List<CourseDto> courseDtos;
-        Page<CourseDto> coursePage;
-
-        // Build filter specification
-        Specification<Course> spec = buildCourseSpecification(filterDto, userId, isAdmin, isMethodist, isTeacher, isFacultyHead);
-
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updtime"));
+        Page<Course> coursePage;
         if (isAdmin) {
-            // Admin/SuperAdmin: Return all courses with all modules (with filters)
-            List<Course> allCourses = courseRepository.findAll(spec);
-            courseDtos = allCourses.stream()
-                    .sorted(Comparator.comparing(Course::getUpdtime, Comparator.nullsLast(Comparator.reverseOrder())))
-                    .map(CourseDto::new)
-                    .collect(Collectors.toList());
-
-            // Create paginated result
-            int start = Math.min((int) pageRequest.getOffset(), courseDtos.size());
-            int end = Math.min((start + pageRequest.getPageSize()), courseDtos.size());
-            List<CourseDto> pageContent = courseDtos.subList(start, end);
-            coursePage = new PageImpl<>(pageContent, pageRequest, courseDtos.size());
-        } else if (isMethodist) {
-            // Methodist: Return only their own courses (courses they created) with filters
-            List<Course> methodistCourses = courseRepository.findAll(spec);
-            courseDtos = methodistCourses.stream()
-                    .sorted(Comparator.comparing(Course::getUpdtime, Comparator.nullsLast(Comparator.reverseOrder())))
-                    .map(CourseDto::new)
-                    .collect(Collectors.toList());
-
-            // Create paginated result
-            int start = Math.min((int) pageRequest.getOffset(), courseDtos.size());
-            int end = Math.min((start + pageRequest.getPageSize()), courseDtos.size());
-            List<CourseDto> pageContent = courseDtos.subList(start, end);
-            coursePage = new PageImpl<>(pageContent, pageRequest, courseDtos.size());
-        } else if (isTeacher) {
-            // Teacher: Return courses with only assigned modules, unassigned modules set to null (with filters)
-            List<Course> teacherCourses = courseRepository.findAll(spec);
-            courseDtos = teacherCourses.stream()
-                    .sorted(Comparator.comparing(Course::getUpdtime, Comparator.nullsLast(Comparator.reverseOrder())))
-                    .map(course -> {
-                        List<StateHMet> historyWithoutFirst = course.getStateHMets()
-                                .stream().filter(h -> !h.getStateCd().equals("001")).toList();
-                        course.setStateHMets(historyWithoutFirst);
-                        CourseDto dto = new CourseDto(course);
-                        // Filter modules to only show those assigned to this teacher
-                        if (dto.getModules() != null) {
-                            List<ModuleDto> assignedModules = dto.getModules().stream()
-                                    .filter(module -> userId.equals(module.getTeacherId()))
-                                    .collect(Collectors.toList());
-
-                            // If teacher has assigned modules, show only those; otherwise set to null
-                            dto.setModules(assignedModules.isEmpty() ? null : assignedModules);
-                        }
-                        return dto;
-                    })
-                    .collect(Collectors.toList());
-
-            // Create paginated result
-            int start = Math.min((int) pageRequest.getOffset(), courseDtos.size());
-            int end = Math.min((start + pageRequest.getPageSize()), courseDtos.size());
-            List<CourseDto> pageContent = courseDtos.subList(start, end);
-            coursePage = new PageImpl<>(pageContent, pageRequest, courseDtos.size());
-        }  else if (isFacultyHead) {
-            List<Course> facultyHeadCourses = courseRepository.findAll(spec);
-            courseDtos = facultyHeadCourses.stream()
-                    .sorted(Comparator.comparing(Course::getUpdtime, Comparator.nullsLast(Comparator.reverseOrder())))
-                    .map(CourseDto::new)
-                    .toList();
-            int start = Math.min((int) pageRequest.getOffset(), courseDtos.size());
-            int end = Math.min((start + pageRequest.getPageSize()), courseDtos.size());
-            List<CourseDto> pageContent = courseDtos.subList(start, end);
-            coursePage = new PageImpl<>(pageContent, pageRequest, courseDtos.size());
+            coursePage =  courseRepository.getCoursesFilteredForAdmin(
+                    filterDto.getName(),
+                    filterDto.getCourseFormat(),
+                    filterDto.getCourseType(),
+                    filterDto.getCourseStudentType(),
+                    filterDto.getState(),
+                    pageRequest
+            );
+        } else if (isMethodist){
+            coursePage =  courseRepository.getCoursesFilteredForAdmin(
+                    filterDto.getName(),
+                    filterDto.getCourseFormat(),
+                    filterDto.getCourseType(),
+                    filterDto.getCourseStudentType(),
+                    filterDto.getState(),
+                    pageRequest);
+        } else if  (isTeacher) {
+            coursePage = courseRepository.getCoursesFilteredForTeacher (
+                    currentUser.getId(),
+                    filterDto.getName(),
+                    filterDto.getCourseFormat(),
+                    filterDto.getCourseType(),
+                    filterDto.getCourseStudentType(),
+                    filterDto.getState(),
+                    pageRequest
+            );
+        } else if (isFacultyHead) {
+            coursePage =  courseRepository.getCoursesFilteredForFacultyHead(
+                    filterDto.getName(),
+                    filterDto.getCourseFormat(),
+                    filterDto.getCourseType(),
+                    filterDto.getCourseStudentType(),
+                    filterDto.getState(),
+                    pageRequest);
         } else {
-            // Other roles: Return empty list
-            coursePage = new PageImpl<>(new ArrayList<>(), pageRequest, 0);
+            throw new AuthException("You are not authorized to perform this action");
         }
 
-        response.setData(coursePage, page);
+
+        List<CourseListDto> listDto = coursePage.get().map(CourseListDto::new).toList();
+        response.setData(listDto);
+        Pagination pagination = new Pagination();
+        pagination.setCurrentPage(page);
+        pagination.setTotalElements(coursePage.getTotalElements());
+        pagination.setTotalPages(coursePage.getTotalPages());
+        pagination.setNumberOfElements(coursePage.getNumberOfElements());
+        response.setPagination(pagination);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
     }
 
-    /**
-     * Build JPA Specification for filtering courses based on filter DTO and user role
-     */
-    private Specification<Course> buildCourseSpecification(CourseFilterDto filterDto, String userId,
-                                                            boolean isAdmin, boolean isMethodist, boolean isTeacher, boolean isFacultyHead) {
-        return (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-            // Apply role-based filtering
-            if (isMethodist) {
-                // Methodist can only see their own courses
-                predicates.add(criteriaBuilder.equal(root.get("insuser"), userId));
-            } else if (isTeacher) {
-                // Teacher can only see courses with modules assigned to them
-                predicates.add(criteriaBuilder.equal(root.join("modules").get("teacher").get("id"), userId));
-                predicates.add(criteriaBuilder.notEqual(root.get("state"), "001"));
-            } else if (isFacultyHead) {
-                predicates.add(root.get("state").in(List.of("006", "004", "005", "003")));
-            }
-            // Admin/SuperAdmin can see all courses (no additional predicate)
 
-            // Apply filter parameters
-            if (filterDto.getName() != null && !filterDto.getName().isBlank()) {
-                predicates.add(criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("name")),
-                        "%" + filterDto.getName().toLowerCase() + "%"
-                ));
-            }
-
-            if (filterDto.getState() != null && !filterDto.getState().isBlank()) {
-                predicates.add(criteriaBuilder.equal(root.get("state"), filterDto.getState()));
-            }
-
-            if (filterDto.getCourseType() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("courseType").get("id"), filterDto.getCourseType()));
-            }
-
-            if (filterDto.getCourseFormat() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("courseFormat").get("id"), filterDto.getCourseFormat()));
-            }
-
-            if (filterDto.getCourseStudentType() != null) {
-                predicates.add(criteriaBuilder.equal(root.get("courseStudentType").get("id"), filterDto.getCourseStudentType()));
-            }
-
-            return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
-        };
-    }
-
-    /**
-     * Get detailed information about a course by ID
-     */
     public BaseResponse getCourseById(String courseId) {
         BaseResponse response = new BaseResponse();
 
@@ -524,9 +438,7 @@ public class CourseService {
         return response;
     }
 
-    /**
-     * Delete a course - only allowed if course status is "001" (CREATED)
-     */
+
     @Transactional
     public BaseResponse delete(String id) {
         BaseResponse response = new BaseResponse();
@@ -550,7 +462,7 @@ public class CourseService {
     public BaseResponse getCoursesWithoutPagination() {
         BaseResponse response = new BaseResponse();
         List<Course> all = courseRepository.findAll();
-        List<CourseListDto> list = all.stream().map(CourseListDto::new).toList();
+        List<CourseExternalListDto> list = all.stream().map(CourseExternalListDto::new).toList();
         response.setData(list);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;

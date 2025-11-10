@@ -16,9 +16,11 @@ public class ModuleHDto {
     private String state;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime time;
+    private String description;
 
     public ModuleHDto(StateHModule stateHModule) {
         this.state = stateHModule.getStateNm();
         this.time = stateHModule.getInstime();
+        this.description = stateHModule.getDescriptions();
     }
 }

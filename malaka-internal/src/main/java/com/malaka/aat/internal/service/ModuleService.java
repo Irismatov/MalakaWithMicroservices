@@ -31,6 +31,7 @@ import com.malaka.aat.internal.repository.spr.DepartmentSprRepository;
 import com.malaka.aat.internal.repository.spr.FacultySprRepository;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -242,21 +243,32 @@ public class ModuleService {
 
 
         ModuleState moduleState = Arrays.stream(ModuleState.values()).filter(f -> f.getValue().equals(dto.getState())).findFirst().orElseThrow();
-        stateHModuleService.createStateHModule(module, moduleState, dto.getDescription());
+        StateHModule stateHModule = stateHModuleService.createStateHModule(module, moduleState, dto.getDescription());
 
         // Save module
         Module updatedModule = moduleRepository.saveAndFlush(module);
-
-
-        // Prepare response with module DTO
-        return courseService.getCourseById(updatedModule.getCourse().getId());
+        updatedModule.getStateHistory().add(stateHModule);
+        prepareCourseForUser(updatedModule.getCourse());
+        CourseDto courseDto = new CourseDto(updatedModule.getCourse());
+        response.setData(courseDto);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
     }
 
-    /**
-     * Validate that the module is complete before marking as SENT
-     * - Topic count must match topicCount
-     * - All topics must have content, lecture, presentation, and test files
-     */
+    private void prepareCourseForUser(Course course) {
+        User currentUser = sessionService.getCurrentUser();
+
+        boolean isTeacher = currentUser.getRoles().stream()
+                .anyMatch(role -> "TEACHER".equals(role.getName()));
+
+        if (isTeacher) {
+            course.setModules(
+                    course.getModules().stream().filter(m -> m.getTeacher().getId().equals(currentUser.getId())).collect(Collectors.toList())
+            );
+        }
+    }
+
+
     private void validateModuleCompletion(Module module) {
         // Check if topic count matches
         Integer expectedTopicCount = module.getTopicCount();

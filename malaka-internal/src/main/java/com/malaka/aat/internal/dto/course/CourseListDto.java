@@ -1,26 +1,64 @@
 package com.malaka.aat.internal.dto.course;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.malaka.aat.internal.dto.StateHMet.StateHMetDto;
+import com.malaka.aat.internal.model.BaseEntity;
 import com.malaka.aat.internal.model.Course;
 import com.malaka.aat.internal.util.ServiceUtil;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+
+
 @Getter
 @Setter
 public class CourseListDto {
+
     private String id;
     private String name;
     private String description;
+    private Integer moduleCount;
+    private Long lang;
+    private String state;
     private String imgUrl;
-    private int moduleCount;
+    private Long courseType;
+    private Long courseFormat;
+    private Long courseStudentType;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime instime;
+    private List<StateHMetDto> history;
 
     public CourseListDto(Course course) {
+        this.id = course.getId();
         this.name = course.getName();
         this.description = course.getDescription();
-        this.imgUrl = convertToPublicUrl(course.getFile().getPath());
         this.moduleCount = course.getModuleCount();
+        this.lang = course.getLang().getId();
+        this.instime = course.getInstime();
+        this.state = course.getState();
+        if (course.getCourseType() != null) {
+            this.courseType = course.getCourseType().getId();
+        }
+        if (course.getCourseFormat() != null) {
+            this.courseFormat = course.getCourseFormat().getId();
+        }
+        if (course.getCourseStudentType() != null) {
+            this.courseStudentType = course.getCourseStudentType().getId();
+        }
+        if (course.getFile() != null && course.getFile().getPath() != null) {
+            this.imgUrl = convertToPublicUrl(course.getFile().getPath());
+        } else {
+            this.imgUrl = null;
+        }
+        if (course.getStateHMets() != null) {
+            this.history = course.getStateHMets().stream()
+                    .sorted(Comparator.comparing(BaseEntity::getInstime, Comparator.nullsLast(Comparator.naturalOrder())))
+                    .map(StateHMetDto::new).toList();
+        }
     }
-
 
     private String convertToPublicUrl(String absolutePath) {
         if (absolutePath == null) {

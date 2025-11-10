@@ -29,7 +29,6 @@ public class ModuleDto {
     private String state;
     private String courseId;
     private String courseName;
-    private String rejectionDescription;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime instime;
     private List<TopicDto> topics;
