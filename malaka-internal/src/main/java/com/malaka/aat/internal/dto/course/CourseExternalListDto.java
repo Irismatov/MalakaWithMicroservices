@@ -15,6 +15,7 @@ public class CourseExternalListDto {
     private int moduleCount;
 
     public CourseExternalListDto(Course course) {
+        this.id = course.getId();
         this.name = course.getName();
         this.description = course.getDescription();
         this.imgUrl = convertToPublicUrl(course.getFile().getPath());

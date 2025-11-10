@@ -28,7 +28,7 @@ public interface CourseRepository extends JpaRepository<Course, String>, JpaSpec
     List<Course> findByIds(List<String> ids);
 
 
-    @Query("FROM Course c WHERE (:name IS NULL OR c.name ILIKE CONCAT ('%', :name, '%')) AND " +
+    @Query("SELECT DISTINCT c FROM Course c WHERE (:name IS NULL OR c.name ILIKE CONCAT ('%', :name, '%')) AND " +
             "(:courseFormat IS NULL OR c.courseFormat.id = :courseFormat) AND " +
             "(:courseType IS NULL OR c.courseType.id = :courseType) AND " +
             "(:courseStudentType IS NULL OR c.courseStudentType.id = :courseStudentType) AND " +
@@ -42,13 +42,14 @@ public interface CourseRepository extends JpaRepository<Course, String>, JpaSpec
             Pageable pageable
     );
 
-        @Query("FROM Course c JOIN c.modules m " +
+
+    @Query("SELECT DISTINCT c FROM Course c JOIN c.modules m " +
             "WHERE (:name IS NULL OR c.name ILIKE CONCAT ('%', :name, '%')) AND " +
             "(:courseFormat IS NULL OR c.courseFormat.id = :courseFormat) AND " +
             "(:courseType IS NULL OR c.courseType.id = :courseType) AND " +
             "(:courseStudentType IS NULL OR c.courseStudentType.id = :courseStudentType) AND " +
             "( (:state IS NULL and (c.state != '001') ) or c.state LIKE :state) AND " +
-                "(m.teacher.id = :teacherId)")
+            "(m.teacher.id = :teacherId)")
     Page<Course> getCoursesFilteredForTeacher(
             @Param("teacherId") String teacherId,
             @Param("name") String name,
@@ -59,7 +60,7 @@ public interface CourseRepository extends JpaRepository<Course, String>, JpaSpec
             Pageable pageable
     );
 
-    @Query("FROM Course c WHERE (:name IS NULL OR c.name ILIKE CONCAT ('%', :name, '%')) AND " +
+    @Query("SELECT DISTINCT c FROM Course c WHERE (:name IS NULL OR c.name ILIKE CONCAT ('%', :name, '%')) AND " +
             "(:courseFormat IS NULL OR c.courseFormat.id = :courseFormat) AND " +
             "(:courseType IS NULL OR c.courseType.id = :courseType) AND " +
             "(:courseStudentType IS NULL OR c.courseStudentType.id = :courseStudentType) AND " +
@@ -74,4 +75,6 @@ public interface CourseRepository extends JpaRepository<Course, String>, JpaSpec
     );
 
 
+    @Query("FROM Course c WHERE c.state != '005'")
+    List<Course> findAllNotCancelledCourses();
 }

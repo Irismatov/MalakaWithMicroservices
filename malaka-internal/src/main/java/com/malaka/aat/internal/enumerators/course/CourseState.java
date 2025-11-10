@@ -60,6 +60,11 @@ public enum CourseState {
                     throw new BadRequestException("Can't update course: " + course.getId() + " to a state: " + state);
                 }
             }
+            case CANCELLED -> {
+                if (!course.getState().equals("006")) {
+                    throw new BadRequestException("Can't update course: " + course.getId() + " to a state: " + state);
+                }
+            }
             case APPROVED -> {
                 if (!course.getState().equals("003") &&  !course.getState().equals("007")) {
                     throw new BadRequestException("Can't update course: " + course.getId() + " to a state: " + state);

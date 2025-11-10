@@ -14,7 +14,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.malaka.aat.internal.dto.course.CourseDto;
-import com.malaka.aat.internal.dto.module.ModuleCreateDto;
 import com.malaka.aat.internal.dto.module.ModuleDto;
 import com.malaka.aat.internal.dto.module.ModuleStateUpdateDto;
 import com.malaka.aat.internal.dto.module.ModuleUpdateDto;
@@ -112,8 +111,12 @@ public class ModuleService {
         Module module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new NotFoundException("Module not found with id: " + moduleId));
 
+        if (!module.getCourse().getState().equals("001") && !module.getCourse().getState().equals("004")) {
+            throw new BadRequestException("Can't update module state if the course is not in NEW or REJECTED state");
+        }
+
         // Update basic fields
-        if (dto.getName() != null) {
+        if (!module.getName().equals(dto.getName())) {
             Optional<Module> existingModule = moduleRepository
                     .findByNameAndCourseId(dto.getName(), module.getCourse().getId());
             if (existingModule.isPresent()) {
@@ -122,11 +125,11 @@ public class ModuleService {
             module.setName(dto.getName());
         }
 
-        if (dto.getTopicCount() != null) {
+        if (!module.getTopicCount().equals(dto.getTopicCount())) {
             module.setTopicCount(dto.getTopicCount());
         }
 
-        if (dto.getTeacherId() != null) {
+        if (!module.getTeacher().getId().equals(dto.getTeacherId())) {
             // Validate and update teacher
             User teacher = userRepository.findById(dto.getTeacherId()).orElseThrow( () ->
                     new NotFoundException("Taeacher not found with id " +  dto.getTeacherId()));
@@ -139,22 +142,16 @@ public class ModuleService {
             module.setTeacher(teacher);
         }
 
-        // Update faculty if provided
-        if (dto.getFacultyId() != null && !dto.getFacultyId().isBlank()) {
+        if (!module.getFaculty().getId().equals(dto.getFacultyId())) {
             FacultySpr faculty = facultySprRepository.findById(dto.getFacultyId())
                     .orElseThrow(() -> new NotFoundException("Faculty not found with id: " + dto.getFacultyId()));
             module.setFaculty(faculty);
-        } else {
-            module.setFaculty(null);
         }
 
-        // Update department if provided
-        if (dto.getDepartmentId() != null && !dto.getDepartmentId().isBlank()) {
+        if (!module.getDepartment().getID().equals(dto.getDepartmentId())) {
             DepartmentSpr department = departmentSprRepository.findById(dto.getDepartmentId())
                     .orElseThrow(() -> new NotFoundException("Department not found with id: " + dto.getDepartmentId()));
             module.setDepartment(department);
-        } else {
-            module.setDepartment(null);
         }
 
         // Save updated module

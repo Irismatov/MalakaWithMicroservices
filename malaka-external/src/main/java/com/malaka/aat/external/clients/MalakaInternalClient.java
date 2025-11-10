@@ -49,4 +49,7 @@ public interface MalakaInternalClient {
     @GetMapping("/api/topic/{topicId}/test")
     BaseResponse getTest(@PathVariable String topicId);
 
+    @GetMapping("/api/courses")
+    BaseResponse getCourses();
+
 }

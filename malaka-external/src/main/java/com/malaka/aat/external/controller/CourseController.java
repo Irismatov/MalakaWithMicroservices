@@ -22,6 +22,13 @@ public class CourseController {
         return courseService.getCoursesWithPagination(page, size);
     }
 
+    @GetMapping("/courses")
+    public BaseResponse getCoursesWithoutPagination(
+
+    ) {
+        return courseService.getCoursesWithoutPagination();
+    }
+
     @GetMapping("/course/group/{groupId}")
     public BaseResponse getCourseById(@PathVariable String groupId) {
         return courseService.getCourseById(groupId);

@@ -152,4 +152,8 @@ public class CourseService {
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
     }
+
+    public BaseResponse getCoursesWithoutPagination() {
+        return malakaInternalClient.getCourses();
+    }
 }

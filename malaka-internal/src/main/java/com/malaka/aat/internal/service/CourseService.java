@@ -468,7 +468,7 @@ public class CourseService {
 
     public BaseResponse getCoursesWithoutPagination() {
         BaseResponse response = new BaseResponse();
-        List<Course> all = courseRepository.findAll();
+        List<Course> all = courseRepository.findAllNotCancelledCourses();
         List<CourseExternalListDto> list = all.stream().map(CourseExternalListDto::new).toList();
         response.setData(list);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
