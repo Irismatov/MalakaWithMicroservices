@@ -36,26 +36,26 @@ public class TopicService {
     private final StudentEnrollmentDetailRepository studentEnrollmentDetailRepository;
 
     public ResponseEntity<Resource> streamTopicContent(String groupId, String topicId, String rangeHeader) {
-        validateIfTopicAccessibleToStudent(groupId, topicId);
+        validateIfTopicAccessibleToStudent(groupId, topicId, 1);
 
         // Pass the Range header to the Feign client
         return malakaInternalClient.streamContentFile(topicId, rangeHeader);
     }
 
-    public ResponseEntity<Resource> getPresentationFile(String groupId, String topicId) {
-        validateIfTopicAccessibleToStudent(groupId, topicId);
-
-        return malakaInternalClient.presentationFile(topicId);
-    }
-
     public ResponseEntity<Resource> getLectureFile(String groupId, String topicId) {
-        validateIfTopicAccessibleToStudent(groupId, topicId);
+        validateIfTopicAccessibleToStudent(groupId, topicId, 2);
 
         return malakaInternalClient.lectureFile(topicId);
     }
 
+    public ResponseEntity<Resource> getPresentationFile(String groupId, String topicId) {
+        validateIfTopicAccessibleToStudent(groupId, topicId, 3);
+
+        return malakaInternalClient.presentationFile(topicId);
+    }
+
     public BaseResponse getTopicTest(String groupId, String topicId) {
-        validateIfTopicAccessibleToStudent(groupId, topicId);
+        validateIfTopicAccessibleToStudent(groupId, topicId, 4);
         BaseResponse response = new BaseResponse();
         BaseResponse responseFromInternal = malakaInternalClient.getTest(topicId);
         if (responseFromInternal.getResultCode() != 0) {
@@ -68,7 +68,7 @@ public class TopicService {
     }
 
 
-    private void validateIfTopicAccessibleToStudent(String groupId, String topicId) {
+    private void validateIfTopicAccessibleToStudent(String groupId, String topicId, Integer contentStep) {
         User currentUser = sessionService.getCurrentUser();
         Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new NotFoundException("Student not found for the current user"));
         Group group = groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException("The group doesn't exist with id: " + groupId));
