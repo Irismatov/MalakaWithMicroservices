@@ -19,7 +19,8 @@ public enum CourseState {
     REJECTED("004", "Course qaytarilgan"),
     CANCELLED("005", "Course bekor qilingan"),
     APPROVED("006", "Course fakultet boshlig'i tomonidan tasdiqlangan"),
-    RESENT("007", "Course qayta jo'natilgan");
+    RESENT("007", "Course qayta jo'natilgan"),
+    READY_TO_SEND_TO_FACULTY_HEAD("008", "Course fakultet boshlig'iga jo'natish uchun tayyor");
 
     private final String value;
     private final String description;
@@ -51,12 +52,17 @@ public enum CourseState {
                 }
             }
             case SENT_TO_FACULTY_HEAD -> {
+                if (!course.getState().equals("008")) {
+                    throw new BadRequestException("Can't update course: " + course.getId() + " to a state: " + state);
+                }
+            }
+            case READY_TO_SEND_TO_FACULTY_HEAD -> {
                 if (!course.getState().equals("002")) {
                     throw new BadRequestException("Can't update course: " + course.getId() + " to a state: " + state);
                 }
             }
             case REJECTED -> {
-                if (!course.getState().equals("003")) {
+                if (!course.getState().equals("003") && !course.getState().equals("007")) {
                     throw new BadRequestException("Can't update course: " + course.getId() + " to a state: " + state);
                 }
             }
