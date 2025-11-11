@@ -7,20 +7,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
-/**
- * Malaka External Service Application.
- *
- * This microservice provides external-facing APIs and integrations.
- * It is registered with Eureka Service Registry and accessible via API Gateway.
- *
- * Features:
- * - Service Discovery with Eureka
- * - Feign Clients for inter-service communication
- * - REST API endpoints for external consumers
- * - Integration with external systems
- * - Security integration
- * - Health monitoring with Actuator
- */
+
 @EnableJpaAuditing
 @SpringBootApplication
 @EnableDiscoveryClient
