@@ -33,6 +33,7 @@ public class TopicController {
 
     @Operation(summary = "Ma'ruza faylini yuklash",
             description = "Mavzu uchun ma'ruza matn faylini (word, txt, pdf va h.k.) yuklash")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SUPER_ADMIN')")
     @PostMapping(value = "/{topicId}/lecture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse uploadLectureFile(
             @PathVariable String topicId,
@@ -42,6 +43,7 @@ public class TopicController {
 
     @Operation(summary = "Mavzu uchun test saqlash",
             description = "Word hujjatidan tahlil qilingan test savollari va javob variantlarini rasm fayllari bilan birga saqlash")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SUPER_ADMIN')")
     @PostMapping(value = "/{topicId}/test")
     public BaseResponse uploadTest(@PathVariable String topicId, @RequestBody @Validated TestCreateDto dto) {
         return topicService.saveTest(topicId, dto);
@@ -49,6 +51,7 @@ public class TopicController {
 
     @Operation(summary = "Video/audio kontent yuklash",
             description = "Mavzu uchun video yoki audio kontent faylini yuklash")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SUPER_ADMIN')")
     @PostMapping(value = "/{topicId}/content", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse uploadContentFile(
             @PathVariable String topicId,
@@ -59,6 +62,7 @@ public class TopicController {
 
     @Operation(summary = "Bo'laklab yuklashni boshlash",
             description = "Video yoki audio faylni bo'laklab yuklashni boshlash va upload ID olish")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SUPER_ADMIN')")
     @PostMapping(value = "/{topicId}/content/chunk/init")
     public BaseResponse initChunkUpload(
             @PathVariable String topicId,
@@ -69,6 +73,7 @@ public class TopicController {
 
     @Operation(summary = "Video/audio bo'lagini yuklash",
             description = "Video yoki audio faylning bir bo'lagini yuklash")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SUPER_ADMIN')")
     @PostMapping(value = "/{topicId}/content/chunk/{uploadId}/{chunkNumber}",
                  consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse uploadChunk(
@@ -82,6 +87,7 @@ public class TopicController {
 
     @Operation(summary = "Bo'laklab yuklashni tugatish",
             description = "Barcha bo'laklarni birlashtirish va faylni saqlash")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SUPER_ADMIN')")
     @PostMapping(value = "/{topicId}/content/chunk/finalize/{uploadId}")
     public BaseResponse finalizeChunkUpload(
             @PathVariable String topicId,
@@ -102,6 +108,7 @@ public class TopicController {
 
     @Operation(summary = "Taqdimot yuklash",
             description = "Mavzu uchun taqdimot faylini yuklash")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SUPER_ADMIN')")
     @PostMapping(value = "/{topicId}/presentation", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public BaseResponse uploadPresentationFile(
             @PathVariable String topicId,
@@ -168,12 +175,13 @@ public class TopicController {
         return topicService.getTopicById(id);
     }
 
-
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SUPER_ADMIN')")
     @PutMapping("/{id}")
     public BaseResponse updateTopic(@PathVariable String id, @RequestBody TopicUpdateDto dto) {
         return topicService.update(id, dto);
     }
 
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SUPER_ADMIN')")
     @DeleteMapping("/{id}")
     public BaseResponse deleteTopic(@PathVariable String id) {
         return topicService.deleteTopic(id);
