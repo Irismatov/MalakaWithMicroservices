@@ -454,7 +454,7 @@ public class CourseService {
         Course course = findById(id);
 
         // Check if status is "001" (CREATED)
-        if (!"001".equals(course.getState())) {
+        if (!"001".equals(course.getState()) && !"005".equals(course.getState())) {
             throw new BadRequestException(
                     "Course can only be deleted when status is '001' (CREATED). Current status: " + course.getState()
             );
