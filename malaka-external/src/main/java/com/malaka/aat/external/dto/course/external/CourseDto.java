@@ -1,4 +1,4 @@
-package com.malaka.aat.external.dto.course;
+package com.malaka.aat.external.dto.course.external;
 
 import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
 import com.malaka.aat.external.dto.module.ModuleDto;

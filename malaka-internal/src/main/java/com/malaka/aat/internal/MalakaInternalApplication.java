@@ -13,8 +13,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableFeignClients
 @EnableJpaAuditing
 @ComponentScan(basePackages = {
-        "com.malaka.aat.internal",    // Scan internal module components
-        "com.malaka.aat.core"          // Scan core module components (includes GlobalExceptionHandler)
+        "com.malaka.aat.internal",
+        "com.malaka.aat.core"
 })
 public class MalakaInternalApplication {
 

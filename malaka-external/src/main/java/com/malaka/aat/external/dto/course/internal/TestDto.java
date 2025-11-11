@@ -1,4 +1,4 @@
-package com.malaka.aat.external.dto.test;
+package com.malaka.aat.external.dto.course.internal;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,8 +10,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class TestDto {
-
     private String id;
+    private Integer attemptLimit;
     private List<TestQuestionDto> questions;
-
 }

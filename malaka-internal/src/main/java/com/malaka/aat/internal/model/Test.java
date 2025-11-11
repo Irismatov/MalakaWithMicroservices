@@ -21,6 +21,9 @@ public class Test extends BaseEntity {
     @Column(name = "id", length = 50, nullable = false)
     private String id;
 
+    @Column(name = "attempt_limit", columnDefinition = " INTEGER DEFAULT 5")
+    private Integer attemptLimit;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id", referencedColumnName = "id", unique = false)
     private Topic topic;

@@ -9,10 +9,10 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @Setter
 @Entity
-@Table(name = "test_attempt_detail")
-@SQLDelete(sql = "UPDATE SET is_deleted = 0 where id = ?")
+@Table(name = "student_test_attempt_detail")
+@SQLDelete(sql = "UPDATE test_attempt_detail SET is_deleted = 0 where id = ?")
 @SQLRestriction(value = "is_deleted = 0")
-public class TestAttemptDetail extends BaseEntity{
+public class StudentTestAttemptDetail extends BaseEntity{
 
     @Column(name = "id", nullable = false, length = 50)
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,7 +25,7 @@ public class TestAttemptDetail extends BaseEntity{
     private String questionId;
     @Column(name = "optionId", nullable = false, length = 50)
     private String optionId;
-    @Column(name = "is_correct", columnDefinition = " SMALLINT DEFAULT VALUE 0", nullable = false)
+    @Column(name = "is_correct", columnDefinition = " SMALLINT DEFAULT 0", nullable = false)
     private Short isCorrect;
 
 }

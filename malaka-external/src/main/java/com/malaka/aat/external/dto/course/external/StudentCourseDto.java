@@ -1,4 +1,4 @@
-package com.malaka.aat.external.dto.course;
+package com.malaka.aat.external.dto.course.external;
 
 import lombok.Getter;
 import lombok.Setter;

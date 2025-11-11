@@ -14,10 +14,13 @@ import java.util.stream.Collectors;
 public class TestDto {
 
     private String id;
+    private Integer attemptLimit;
     private List<TestQuestionDto> questions;
 
     public TestDto(Test test) {
         this.id = test.getId();
+        this.attemptLimit = test.getAttemptLimit();
+
         if (test.getQuestions() != null) {
             this.questions = test.getQuestions().stream()
                     .map(TestQuestionDto::new)

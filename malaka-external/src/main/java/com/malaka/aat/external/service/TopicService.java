@@ -9,18 +9,22 @@ import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.external.clients.MalakaInternalClient;
-import com.malaka.aat.external.dto.course.CourseDto;
+import com.malaka.aat.external.dto.course.external.CourseDto;
+import com.malaka.aat.external.dto.course.internal.QuestionOptionDto;
+import com.malaka.aat.external.dto.course.internal.TestQuestionDto;
+import com.malaka.aat.external.dto.course.internal.TopicDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
-import com.malaka.aat.external.dto.test.TestDto;
+import com.malaka.aat.external.dto.test.without_answer.TestAttemptDto;
+import com.malaka.aat.external.dto.test.without_answer.TestAttemptDtoItem;
+import com.malaka.aat.external.dto.test.without_answer.TestDto;
 import com.malaka.aat.external.model.*;
-import com.malaka.aat.external.repository.GroupRepository;
-import com.malaka.aat.external.repository.StudentEnrollmentDetailRepository;
-import com.malaka.aat.external.repository.StudentEnrollmentRepository;
-import com.malaka.aat.external.repository.StudentRepository;
+import com.malaka.aat.external.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 @RequiredArgsConstructor
@@ -34,6 +38,8 @@ public class TopicService {
     private final GroupRepository groupRepository;
     private final StudentEnrollmentRepository studentEnrollmentRepository;
     private final StudentEnrollmentDetailRepository studentEnrollmentDetailRepository;
+    private final StudentTestAttemptRepository studentTestAttemptRepository;
+    private final StudentEnrollmentService studentEnrollmentService;
 
     public ResponseEntity<Resource> streamTopicContent(String groupId, String topicId, String rangeHeader) {
         validateIfTopicAccessibleToStudent(groupId, topicId, 1);
@@ -57,7 +63,7 @@ public class TopicService {
     public BaseResponse getTopicTest(String groupId, String topicId) {
         validateIfTopicAccessibleToStudent(groupId, topicId, 4);
         BaseResponse response = new BaseResponse();
-        BaseResponse responseFromInternal = malakaInternalClient.getTest(topicId);
+        BaseResponse responseFromInternal = malakaInternalClient.getTestByTopicId(topicId);
         if (responseFromInternal.getResultCode() != 0) {
             return responseFromInternal;
         }
@@ -93,12 +99,130 @@ public class TopicService {
                 max = moduleDto.getTopics().size();
             }
             for (int j = 0; j < max; j++) {
-               if ( moduleDto.getTopics().get(j).getId().equals(topicId)) {
+               if ( moduleDto.getTopics().get(j).getId().equals(topicId) && studentEnrollmentDetail.getContentStep() >= contentStep) {
                     return;
                 }
             }
         }
 
         throw new AuthException("Student is not authorized to get the content of this topic");
+    }
+
+    public BaseResponse testAttempt(String groupId, String topicId, TestAttemptDto testAttemptDto) {
+        validateIfTopicAccessibleToStudent(groupId, topicId, 4);
+        User currentUser = sessionService.getCurrentUser();
+        Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new NotFoundException("Student not found for the current user"));
+
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException("The group doesn't exist with id: " + groupId));
+        List<StudentTestAttempt> testAttempts = studentTestAttemptRepository.findByGroupAndTopicId(group, topicId);
+        BaseResponse responseFromInternal = malakaInternalClient.getCourseById(group.getCourseId());
+        if (responseFromInternal.getResultCode() != 0) {
+            return responseFromInternal;
+        }
+        com.malaka.aat.external.dto.course.internal.CourseDto courseDto = objectMapper.convertValue(responseFromInternal.getData(), com.malaka.aat.external.dto.course.internal.CourseDto.class);
+        List<com.malaka.aat.external.dto.course.internal.ModuleDto> modules = courseDto.getModules();
+        com.malaka.aat.external.dto.course.internal.ModuleDto moduleDto = modules.stream().filter(
+                m -> {
+                    return m.getTopics().stream().anyMatch(
+                            t -> t.getId().equals(topicId)
+                    );
+                }
+        ).findFirst().orElseThrow(() -> new NotFoundException("The topic doesn't exist with id: " + topicId));
+        TopicDto topicDto = moduleDto.getTopics().stream().filter(t -> t.getId().equals(topicId)).findFirst().orElseThrow();
+        com.malaka.aat.external.dto.course.internal.TestDto testDto = topicDto.getTestDto();
+
+
+        validateTestAttempt(testAttemptDto, testDto, testAttempts);
+        StudentEnrollment studentEnrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, courseDto.getId(), group)
+                .orElseThrow(() -> new NotFoundException("Student enrollment not found for the current user"));
+        StudentEnrollmentDetail lastStudentEnrollmentDetail = studentEnrollmentDetailRepository.findLastByStudentEnrollment(studentEnrollment).orElseThrow(
+                () -> new NotFoundException("Student enrollment detail not found for the current user"));
+
+        int correctAnswers = calculateCorrectAnswers(testDto, testAttemptDto);
+        StudentTestAttempt studentTestAttempt = new  StudentTestAttempt();
+        studentTestAttempt.setCorrectAnswers(correctAnswers);
+        studentTestAttempt.setTestId(testDto.getId());
+        studentTestAttempt.setTopicId(topicId);
+        studentTestAttempt.setGroup(group);
+
+        int percentage = convertCorrectAnswerQuantityToPercentage(correctAnswers, testDto.getQuestions().size());
+        if (percentage >= 60) {
+            studentEnrollmentService.updateAndSaveStepOfModule(
+                    moduleDto.getTopicCount(),
+                    courseDto.getModuleCount(),
+                    studentEnrollment,
+                    lastStudentEnrollmentDetail
+            );
+        } else {
+            studentTestAttempt.setIsSuccess((short) 0);
+            testAttempts.add(studentTestAttempt);
+            if (testAttempts.size() >= testDto.getAttemptLimit()) {
+                if (testAttempts.stream().filter(a -> a.getIsSuccess().equals(0) ).findFirst().isEmpty()) {
+                    lastStudentEnrollmentDetail.setIsActive((short) 0);
+                    studentEnrollmentDetailRepository.save(lastStudentEnrollmentDetail);
+                    StudentEnrollmentDetail newStudentEnrollmentDetail = new StudentEnrollmentDetail();
+                    newStudentEnrollmentDetail.setContentStep(1);
+                    newStudentEnrollmentDetail.setModuleStep(lastStudentEnrollmentDetail.getModuleStep());
+                    newStudentEnrollmentDetail.setTopicStep(lastStudentEnrollmentDetail.getTopicStep());
+                    newStudentEnrollmentDetail.setStudentEnrollment(studentEnrollment);
+                    newStudentEnrollmentDetail.setStudentEnrollment(studentEnrollment);
+
+                }
+            }
+
+
+        }
+        studentTestAttemptRepository.save(studentTestAttempt);
+        BaseResponse response = new BaseResponse();
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
+    }
+
+    private int convertCorrectAnswerQuantityToPercentage(int correctAnswers, int questionCount) {
+        if (questionCount == 0) {
+            return 0;
+        }
+        double percentage = ((double) correctAnswers / questionCount) * 100;
+        return (int) Math.round(percentage);
+    }
+
+    public void validateTestAttempt(TestAttemptDto testAttemptDto,
+                                    com.malaka.aat.external.dto.course.internal.TestDto testDto,
+                                    List<StudentTestAttempt> testAttempts
+    ) {
+        if (testAttempts.size() >= testDto.getAttemptLimit()) {
+            throw new BadRequestException("Student already reached its limit");
+        }
+
+        List<TestAttemptDtoItem> answers = testAttemptDto.getAnswers();
+        if (answers.size() > testDto.getQuestions().size()) {
+            throw new BadRequestException("The size of answers must not be greater than the size of questions");
+        }
+        List<String> questionIds = answers.stream().map(TestAttemptDtoItem::getQuestionId).toList();
+        questionIds.forEach(questionId1 -> {
+            int size = questionIds.stream().filter(questionId1::equals).toList().size();
+            if (size > 1) {
+                throw new BadRequestException("Question id must be unique among answers");
+            }
+        });
+    }
+
+    public int calculateCorrectAnswers(com.malaka.aat.external.dto.course.internal.TestDto testDto , TestAttemptDto testAttemptDto) {
+        AtomicInteger correctAnswers = new AtomicInteger(0);
+
+        testAttemptDto.getAnswers().forEach(answer -> {
+            TestQuestionDto testQuestionDto = testDto.getQuestions().
+                    stream().filter
+                            (q -> q.getId().equals(answer.getQuestionId()))
+                    .findFirst().orElseThrow(() ->
+                            new NotFoundException("Test question not found with id: " + answer.getQuestionId()));
+            QuestionOptionDto questionOptionDto = testQuestionDto.getOptions().stream().filter(o ->
+                    o.getId().equals(answer.getOptionId())).findFirst().orElseThrow(() -> new NotFoundException("Option not found with id: " + answer.getOptionId()));
+            if (questionOptionDto.getIsCorrect().equals((short) 0)) {
+                int i = correctAnswers.incrementAndGet();
+                correctAnswers.set(i);
+            }
+        });
+        return correctAnswers.get();
     }
 }

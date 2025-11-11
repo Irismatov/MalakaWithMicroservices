@@ -1,10 +1,12 @@
 package com.malaka.aat.external.controller;
 
 import com.malaka.aat.core.dto.BaseResponse;
+import com.malaka.aat.external.dto.test.without_answer.TestAttemptDto;
 import com.malaka.aat.external.service.TopicService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -42,5 +44,13 @@ public class TopicController {
     @GetMapping("/group/{groupId}/topic/{topicId}/test")
     public BaseResponse test(@PathVariable String groupId, @PathVariable String topicId) {
         return topicService.getTopicTest(groupId, topicId);
+    }
+
+    @PostMapping("/group/{groupId}/topic/{topicId}/test/attempt")
+    public BaseResponse testAttempt(@PathVariable String groupId,
+                                    @PathVariable String topicId,
+                                    @RequestBody @Validated TestAttemptDto testAttemptDto
+                                    ) {
+        return topicService.testAttempt(groupId, topicId, testAttemptDto);
     }
 }

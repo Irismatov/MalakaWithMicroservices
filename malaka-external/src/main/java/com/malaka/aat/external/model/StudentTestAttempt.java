@@ -23,12 +23,12 @@ public class StudentTestAttempt extends BaseEntity {
     private Student student;
     @ManyToOne(fetch = FetchType.LAZY)
     private Group group;
-    @Column(name = "course_id")
-    private String courseId;
-    @Column(name = "module_id")
-    private String moduleId;
+    @Column(name = "topic_id")
+    private String topicId;
     @Column(name = "test_id")
     private String testId;
     @Column(name = "correct_answers", nullable = false)
     private Integer correctAnswers;
+    @Column(name = "is_success")
+    private Short isSuccess;
 }

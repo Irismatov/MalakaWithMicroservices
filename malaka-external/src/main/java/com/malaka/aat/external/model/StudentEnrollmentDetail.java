@@ -26,4 +26,6 @@ public class StudentEnrollmentDetail extends BaseEntity {
     private Integer topicStep;
     @Column(name = "content_step", columnDefinition = "INTEGER DEFAULT 1", nullable = false)
     private Integer contentStep;
+    @Column(name = "is_active", nullable = false, columnDefinition = " SMALLINT DEFAULT 1")
+    private Short isActive;
 }

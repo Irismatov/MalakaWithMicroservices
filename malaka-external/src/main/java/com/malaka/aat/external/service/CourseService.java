@@ -1,6 +1,5 @@
 package com.malaka.aat.external.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseStatus;
@@ -10,10 +9,9 @@ import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.external.clients.MalakaInternalClient;
-import com.malaka.aat.external.dto.course.CourseDto;
-import com.malaka.aat.external.dto.course.StudentCourseDto;
+import com.malaka.aat.external.dto.course.external.CourseDto;
+import com.malaka.aat.external.dto.course.external.StudentCourseDto;
 import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
-import com.malaka.aat.external.dto.module.ModuleDto;
 import com.malaka.aat.external.enumerators.course.CourseStateForStudent;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
 import com.malaka.aat.external.model.*;
@@ -29,7 +27,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
