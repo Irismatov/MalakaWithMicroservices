@@ -23,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -108,6 +110,7 @@ public class TopicService {
         throw new AuthException("Student is not authorized to get the content of this topic");
     }
 
+    @Transactional
     public BaseResponse testAttempt(String groupId, String topicId, TestAttemptDto testAttemptDto) {
         validateIfTopicAccessibleToStudent(groupId, topicId, 4);
         User currentUser = sessionService.getCurrentUser();
@@ -153,9 +156,11 @@ public class TopicService {
                     studentEnrollment,
                     lastStudentEnrollmentDetail
             );
+            studentTestAttemptRepository.save(studentTestAttempt);
         } else {
             studentTestAttempt.setIsSuccess((short) 0);
             testAttempts.add(studentTestAttempt);
+            studentTestAttemptRepository.save(studentTestAttempt);
             if (testAttempts.size() >= testDto.getAttemptLimit()) {
                 if (testAttempts.stream().filter(a -> a.getIsSuccess().equals(0) ).findFirst().isEmpty()) {
                     lastStudentEnrollmentDetail.setIsActive((short) 0);
@@ -166,13 +171,14 @@ public class TopicService {
                     newStudentEnrollmentDetail.setTopicStep(lastStudentEnrollmentDetail.getTopicStep());
                     newStudentEnrollmentDetail.setStudentEnrollment(studentEnrollment);
                     newStudentEnrollmentDetail.setStudentEnrollment(studentEnrollment);
-
+                    newStudentEnrollmentDetail.setIsActive((short) 1);
+                    studentEnrollmentDetailRepository.save(newStudentEnrollmentDetail);
+                    studentTestAttemptRepository.deleteAll(testAttempts);
                 }
             }
-
-
         }
-        studentTestAttemptRepository.save(studentTestAttempt);
+
+
         BaseResponse response = new BaseResponse();
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
