@@ -25,6 +25,8 @@ public class StudentApplication extends BaseEntity{
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", length = 50, nullable = false)
     private String id;
+    @Column(name = "number", length = 50, nullable = false)
+    private String number;
     @Enumerated(value = EnumType.ORDINAL)
     @Column(name = "status", columnDefinition = " INT default 0")
     private StudentApplicationStatus status;

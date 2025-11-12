@@ -1,5 +1,6 @@
 package com.malaka.aat.core.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,11 +18,13 @@ import java.util.List;
 @NoArgsConstructor
 public class StudentApplicationDto {
     private String id;
+    private String number;
     private String courseId;
     private String phone;
-    private Integer applicationType; // "INDIVIDUAL" or "CORPORATE"
-    private Integer status; // Application status code
+    private Integer applicationType;
+    private Integer status;
     private String fileId;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdDate;
 
     // Individual fields

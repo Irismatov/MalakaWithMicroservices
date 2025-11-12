@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.Year;
 
 @Slf4j
 @Service
@@ -65,7 +66,7 @@ public class StudentApplicationService {
             // Check if the response indicates success (resultCode 0 = SUCCESS)
             if (courseResponse.getResultCode() != ResponseStatus.SUCCESS.getCode()) {
                 log.error("Course validation failed for courseId: {}. ResultCode: {}, ResultNote: {}",
-                    dto.getCourseId(), courseResponse.getResultCode(), courseResponse.getResultNote());
+                        dto.getCourseId(), courseResponse.getResultCode(), courseResponse.getResultNote());
                 throw new NotFoundException("Kurs topilmadi: " + dto.getCourseId());
             }
 
@@ -77,18 +78,41 @@ public class StudentApplicationService {
 
         StudentApplicationIndividual studentApplicationIndividual = StudentApplicationIndividualCreateDto.mapDtoToEntity(dto);
 
-       try {
-           File file = fileService.save(dto.getFile());
-           studentApplicationIndividual.setFile(file);
-       } catch (IOException e) {
-           throw new SystemException("Error occurred while saving file");
-       }
+        try {
+            File file = fileService.save(dto.getFile());
+            studentApplicationIndividual.setFile(file);
+        } catch (IOException e) {
+            throw new SystemException("Error occurred while saving file");
+        }
+        String number = generateApplicationNumber();
+        studentApplicationIndividual.setNumber(number);
         studentApplicationIndividual.setStatus(StudentApplicationStatus.CREATED);
         StudentApplicationIndividual save = studentApplicationRepository.save(studentApplicationIndividual);
         StudentApplicationDto studentApplicationDto = convertToDto(save);
         response.setData(studentApplicationDto);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
+    }
+
+    private String generateApplicationNumber() {
+        try {
+            Integer count = studentApplicationRepository.countAllApplicationsCreatedThisYear() + 1;
+            String year = Year.now().toString();
+            char[] charArray = new char[]{'0', '0', '0', '0', '0', '0'};
+            int counter = charArray.length - 1;
+            while (count > 0) {
+                int num = count % 10;
+                charArray[counter] = (char) (num + '0');
+
+                counter--;
+                count /= 10;
+            }
+            String number = new String(charArray);
+            number = year + number;
+            return number;
+        } catch (Exception e) {
+            throw new SystemException("Error happened while generating application number");
+        }
     }
 
 
@@ -103,7 +127,7 @@ public class StudentApplicationService {
             // Check if the response indicates success (resultCode 0 = SUCCESS)
             if (courseResponse.getResultCode() != ResponseStatus.SUCCESS.getCode()) {
                 log.error("Course validation failed for courseId: {}. ResultCode: {}, ResultNote: {}",
-                    dto.getCourseId(), courseResponse.getResultCode(), courseResponse.getResultNote());
+                        dto.getCourseId(), courseResponse.getResultCode(), courseResponse.getResultNote());
                 throw new NotFoundException("Kurs topilmadi: " + dto.getCourseId());
             }
 
@@ -122,6 +146,8 @@ public class StudentApplicationService {
             log.error("Error saving file for corporate application: {}", e.getMessage());
             throw new SystemException("Error occurred while saving file");
         }
+        String number = generateApplicationNumber();
+        studentApplicationCorporate.setNumber(number);
         studentApplicationCorporate.setStatus(StudentApplicationStatus.CREATED);
         StudentApplicationCorporate save = studentApplicationRepository.save(studentApplicationCorporate);
         StudentApplicationDto studentApplicationDto = convertToDto(save);
@@ -160,7 +186,7 @@ public class StudentApplicationService {
 
     public StudentApplication findById(String id) {
         return studentApplicationRepository.
-                findById(id).orElseThrow( () -> new NotFoundException("Course not found with id " + id));
+                findById(id).orElseThrow(() -> new NotFoundException("Course not found with id " + id));
     }
 
     @Transactional
@@ -175,7 +201,7 @@ public class StudentApplicationService {
             createStudentsFromStudentApplication(application);
         }
 
-        Pageable pageable = PageRequest.of(0 , 10, Sort.by(Sort.Direction.DESC, "updtime"));
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "updtime"));
         Page<StudentApplication> applicationPage = studentApplicationRepository.findAll(pageable);
         // Convert entities to DTOs and create a new Page with DTOs
         Page<StudentApplicationDto> dtoPage = applicationPage.map(this::convertToDto);
@@ -199,7 +225,7 @@ public class StudentApplicationService {
                 student.getCourseIds().add(individual.getCourseId());
             }
             studentRepository.save(student);
-        } else if  (application instanceof StudentApplicationCorporate corporate) {
+        } else if (application instanceof StudentApplicationCorporate corporate) {
             corporate.getPinfls().forEach(
                     pinfl -> {
                         User user = getOrCreateUserByPinfl(pinfl);
@@ -250,6 +276,7 @@ public class StudentApplicationService {
         dto.setStatus(application.getStatus() != null ? application.getStatus().ordinal() : null);
         dto.setFileId(application.getFile() != null ? application.getFile().getId() : null);
         dto.setCreatedDate(application.getInstime());
+        dto.setNumber(application.getNumber());
 
         // Determine type and set specific fields
         if (application instanceof StudentApplicationIndividual) {
