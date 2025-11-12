@@ -93,6 +93,7 @@ public class StudentEnrollmentService {
             newStudentEnrollmentDetail.setModuleStep(1);
             newStudentEnrollmentDetail.setTopicStep(1);
             newStudentEnrollmentDetail.setContentStep(1);
+            newStudentEnrollmentDetail.setIsActive((short) 1);
             savedDetail = studentEnrollmentDetailRepository.save(newStudentEnrollmentDetail);
         }
 
@@ -152,6 +153,7 @@ public class StudentEnrollmentService {
         newStudentEnrollmentDetail.setModuleStep(newModuleStep);
         newStudentEnrollmentDetail.setTopicStep(newTopicStep);
         newStudentEnrollmentDetail.setContentStep(newContentStep);
+        newStudentEnrollmentDetail.setIsActive((short) 1);
         StudentEnrollmentDetail save = studentEnrollmentDetailRepository.save(newStudentEnrollmentDetail);
         return save;
     }
