@@ -14,8 +14,8 @@ import com.malaka.aat.external.dto.course.internal.QuestionOptionDto;
 import com.malaka.aat.external.dto.course.internal.TestQuestionDto;
 import com.malaka.aat.external.dto.course.internal.TopicDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
-import com.malaka.aat.external.dto.test.without_answer.TestAttemptDto;
-import com.malaka.aat.external.dto.test.without_answer.TestAttemptDtoItem;
+import com.malaka.aat.external.dto.test.attempt.TestAttemptRequestDto;
+import com.malaka.aat.external.dto.test.attempt.TestAttemptRequestDtoItem;
 import com.malaka.aat.external.dto.test.without_answer.TestDto;
 import com.malaka.aat.external.model.*;
 import com.malaka.aat.external.repository.*;
@@ -111,7 +111,7 @@ public class TopicService {
     }
 
     @Transactional
-    public BaseResponse testAttempt(String groupId, String topicId, TestAttemptDto testAttemptDto) {
+    public BaseResponse testAttempt(String groupId, String topicId, TestAttemptRequestDto testAttemptDto) {
         validateIfTopicAccessibleToStudent(groupId, topicId, 4);
         User currentUser = sessionService.getCurrentUser();
         Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new NotFoundException("Student not found for the current user"));
@@ -192,7 +192,7 @@ public class TopicService {
         return (int) Math.round(percentage);
     }
 
-    public void validateTestAttempt(TestAttemptDto testAttemptDto,
+    public void validateTestAttempt(TestAttemptRequestDto testAttemptDto,
                                     com.malaka.aat.external.dto.course.internal.TestDto testDto,
                                     List<StudentTestAttempt> testAttempts
     ) {
@@ -200,11 +200,11 @@ public class TopicService {
             throw new BadRequestException("Student already reached its limit");
         }
 
-        List<TestAttemptDtoItem> answers = testAttemptDto.getAnswers();
+        List<TestAttemptRequestDtoItem> answers = testAttemptDto.getAnswers();
         if (answers.size() > testDto.getQuestions().size()) {
             throw new BadRequestException("The size of answers must not be greater than the size of questions");
         }
-        List<String> questionIds = answers.stream().map(TestAttemptDtoItem::getQuestionId).toList();
+        List<String> questionIds = answers.stream().map(TestAttemptRequestDtoItem::getQuestionId).toList();
         questionIds.forEach(questionId1 -> {
             int size = questionIds.stream().filter(questionId1::equals).toList().size();
             if (size > 1) {
@@ -213,7 +213,7 @@ public class TopicService {
         });
     }
 
-    public int calculateCorrectAnswers(com.malaka.aat.external.dto.course.internal.TestDto testDto , TestAttemptDto testAttemptDto) {
+    public int calculateCorrectAnswers(com.malaka.aat.external.dto.course.internal.TestDto testDto , TestAttemptRequestDto testAttemptDto) {
         AtomicInteger correctAnswers = new AtomicInteger(0);
 
         testAttemptDto.getAnswers().forEach(answer -> {

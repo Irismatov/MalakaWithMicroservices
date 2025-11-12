@@ -1,17 +1,19 @@
-package com.malaka.aat.external.dto.test;
+package com.malaka.aat.external.dto.test.without_answer;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
-public class QuestionOptionDto {
+public class TestQuestionDto {
 
     private String id;
-    private String optionText;
+    private String questionText;
     private Short hasImage;
     private String imgUrl;
-
+    private List<QuestionOptionDto> options;
 }
