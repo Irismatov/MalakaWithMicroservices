@@ -20,15 +20,23 @@ public class StudentTestAttempt extends BaseEntity {
     @Column(name = "id", nullable = false, length = 50)
     private String id;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id", nullable = false)
     private Student student;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id", nullable = false)
     private Group group;
-    @Column(name = "topic_id")
+    @Column(name = "topic_id", nullable = false, length = 50)
     private String topicId;
-    @Column(name = "test_id")
+    @Column(name = "test_id", nullable = false, length = 50)
     private String testId;
     @Column(name = "correct_answers", nullable = false)
     private Integer correctAnswers;
-    @Column(name = "is_success")
+    @Column(name = "is_success", nullable = false)
     private Short isSuccess;
+    @Column(name = "attempt_number", nullable = false)
+    private Integer attemptNumber;
+    @Column(name = "correctAnswerPercentage", nullable = false)
+    private Integer correctAnswerPercentage;
+    @Column(name = "total_questions", nullable = false)
+    private Integer totalQuestions;
 }

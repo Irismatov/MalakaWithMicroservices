@@ -19,7 +19,7 @@ public class ModuleHDto {
     private String description;
 
     public ModuleHDto(StateHModule stateHModule) {
-        this.state = stateHModule.getStateNm();
+        this.state = stateHModule.getStateCd();
         this.time = stateHModule.getInstime();
         this.description = stateHModule.getDescriptions();
 

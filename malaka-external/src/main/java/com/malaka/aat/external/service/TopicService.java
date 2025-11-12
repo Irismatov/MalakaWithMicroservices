@@ -16,6 +16,8 @@ import com.malaka.aat.external.dto.course.internal.TopicDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
 import com.malaka.aat.external.dto.test.attempt.TestAttemptRequestDto;
 import com.malaka.aat.external.dto.test.attempt.TestAttemptRequestDtoItem;
+import com.malaka.aat.external.dto.test.attempt.TestAttemptResponseDto;
+import com.malaka.aat.external.dto.test.attempt.TestAttemptResponseDtoItem;
 import com.malaka.aat.external.dto.test.without_answer.TestDto;
 import com.malaka.aat.external.model.*;
 import com.malaka.aat.external.repository.*;
@@ -25,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -143,12 +146,15 @@ public class TopicService {
 
         int correctAnswers = calculateCorrectAnswers(testDto, testAttemptDto);
         StudentTestAttempt studentTestAttempt = new  StudentTestAttempt();
+        studentTestAttempt.setStudent(student);
         studentTestAttempt.setCorrectAnswers(correctAnswers);
         studentTestAttempt.setTestId(testDto.getId());
         studentTestAttempt.setTopicId(topicId);
         studentTestAttempt.setGroup(group);
-
         int percentage = convertCorrectAnswerQuantityToPercentage(correctAnswers, testDto.getQuestions().size());
+        studentTestAttempt.setCorrectAnswerPercentage(percentage);
+        studentTestAttempt.setAttemptNumber(testAttempts.size()+1);
+        studentTestAttempt.setTotalQuestions(testDto.getQuestions().size());
         if (percentage >= 60) {
             studentEnrollmentService.updateAndSaveStepOfModule(
                     moduleDto.getTopicCount(),
@@ -224,11 +230,44 @@ public class TopicService {
                             new NotFoundException("Test question not found with id: " + answer.getQuestionId()));
             QuestionOptionDto questionOptionDto = testQuestionDto.getOptions().stream().filter(o ->
                     o.getId().equals(answer.getOptionId())).findFirst().orElseThrow(() -> new NotFoundException("Option not found with id: " + answer.getOptionId()));
-            if (questionOptionDto.getIsCorrect().equals((short) 0)) {
+            if (questionOptionDto.getIsCorrect().equals((short) 1)) {
                 int i = correctAnswers.incrementAndGet();
                 correctAnswers.set(i);
             }
         });
         return correctAnswers.get();
+    }
+
+    public BaseResponse testAttemptList(String groupId, String topicId) {
+        BaseResponse response = new BaseResponse();
+        validateIfTopicAccessibleToStudent(groupId, topicId, 4);
+
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException("Group not found with id: " + groupId));
+        BaseResponse responseFromInternal = malakaInternalClient.getTestByTopicId(topicId);
+        if (responseFromInternal.getResultCode() != 0) {
+            return responseFromInternal;
+        }
+        com.malaka.aat.external.dto.test.with_answer.TestDto testDto = objectMapper.convertValue(responseFromInternal.getData(),  com.malaka.aat.external.dto.test.with_answer.TestDto.class);
+        List<StudentTestAttempt> testAttemptEntities = studentTestAttemptRepository.findByGroupAndTopicId(group, topicId);
+        List<TestAttemptResponseDtoItem> itemDtos = testAttemptEntities.stream().map(this::mapTestAttemptEntityToDto)
+                .sorted(Comparator.comparing(TestAttemptResponseDtoItem::getAttemptNumber)).toList();
+        TestAttemptResponseDto dto = new TestAttemptResponseDto();
+        dto.setAttempts(itemDtos);
+        dto.setTotalAttempts(testDto.getAttemptLimit());
+        dto.setAttemptsLeft(testDto.getAttemptLimit() -  itemDtos.size());
+
+        response.setData(dto);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
+    }
+
+    public TestAttemptResponseDtoItem mapTestAttemptEntityToDto(StudentTestAttempt entity) {
+        TestAttemptResponseDtoItem dto = new TestAttemptResponseDtoItem();
+        dto.setAttemptNumber(entity.getAttemptNumber());
+        dto.setCorrectAnswers(entity.getCorrectAnswers());
+        dto.setTotalQuestions(entity.getTotalQuestions());
+        dto.setTime(entity.getInstime());
+        dto.setCorrectAnswerPercentage(entity.getCorrectAnswerPercentage());
+        return dto;
     }
 }

@@ -53,4 +53,12 @@ public class TopicController {
                                     ) {
         return topicService.testAttempt(groupId, topicId, testAttemptDto);
     }
+
+    @GetMapping("/group/{groupId}/topic/{topicId}/test/attempt")
+    public BaseResponse getTestAttempts(
+            @PathVariable String groupId,
+            @PathVariable String topicId
+    ) {
+        return topicService.testAttemptList(groupId, topicId);
+    }
 }
