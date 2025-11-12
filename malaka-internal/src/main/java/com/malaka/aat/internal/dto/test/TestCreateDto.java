@@ -15,4 +15,7 @@ public class TestCreateDto {
     @NotNull(message = "Questions must be provided")
     @Size(min = 10, max = 100, message = "The length of the questions must be between 10 and 100")
     private List<TestQuestionCreateDto> questions;
+    @NotNull(message = "Attempt limit must be provided")
+    @Size(min = 1, max = 1000, message = "Attempt limit must be between 1 and 1000")
+    private Integer attemptLimit;
 }

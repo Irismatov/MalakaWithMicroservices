@@ -395,6 +395,7 @@ public class TopicService {
         // Create test entity
         com.malaka.aat.internal.model.Test test = new com.malaka.aat.internal.model.Test();
         test.setTopic(topic);
+        test.setAttemptLimit(testCreateDto.getAttemptLimit());
 
         List<com.malaka.aat.internal.model.TestQuestion> testQuestions = new ArrayList<>();
 
