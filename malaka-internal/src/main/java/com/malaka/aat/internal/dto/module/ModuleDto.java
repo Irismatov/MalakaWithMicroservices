@@ -1,6 +1,7 @@
 package com.malaka.aat.internal.dto.module;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.malaka.aat.internal.model.BaseEntity;
 import com.malaka.aat.internal.model.Module;
 import com.malaka.aat.internal.dto.topic.TopicDto;
 import com.malaka.aat.internal.model.Topic;
@@ -63,7 +64,9 @@ public class ModuleDto {
         }
 
         if (module.getStateHistory() != null &&  !module.getStateHistory().isEmpty()) {
-            this.history = module.getStateHistory().stream().map(ModuleHDto::new).toList();
+            this.history = module.getStateHistory().stream()
+                    .sorted(Comparator.comparing(BaseEntity::getInstime, Comparator.nullsLast(Comparator.naturalOrder())))
+                    .map(ModuleHDto::new).toList();
         }
     }
 }

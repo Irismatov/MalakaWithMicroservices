@@ -22,5 +22,6 @@ public class ModuleHDto {
         this.state = stateHModule.getStateNm();
         this.time = stateHModule.getInstime();
         this.description = stateHModule.getDescriptions();
+
     }
 }
