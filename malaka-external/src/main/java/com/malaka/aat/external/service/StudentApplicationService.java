@@ -15,12 +15,9 @@ import com.malaka.aat.external.enumerators.student_application.StudentApplicatio
 import com.malaka.aat.external.model.*;
 import com.malaka.aat.external.model.spr.StudentApplicationStatusLog;
 import com.malaka.aat.external.model.spr.StudentTypeSpr;
-import com.malaka.aat.external.repository.RoleRepository;
-import com.malaka.aat.external.repository.StudentApplicationRepository;
-import com.malaka.aat.external.repository.StudentRepository;
+import com.malaka.aat.external.repository.*;
 import com.malaka.aat.external.clients.EgovClient;
 import com.malaka.aat.external.clients.gcp.EgovGcpResponse;
-import com.malaka.aat.external.repository.UserRepository;
 import com.malaka.aat.external.repository.spr.StudentTypeSprRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
@@ -38,6 +35,7 @@ import java.io.IOException;
 import java.time.Year;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -55,6 +53,7 @@ public class StudentApplicationService {
     private final StudentTypeSprRepository studentTypeSprRepository;
     private final StudentApplicationLogService studentApplicationLogService;
     private final SessionService sessionService;
+    private final InfoPinppRespository infoPinppRespository;
 
     public BaseResponse saveIndividualApplication(StudentApplicationIndividualCreateDto dto) {
         BaseResponse response = new BaseResponse();
@@ -310,18 +309,16 @@ public class StudentApplicationService {
             dto.setApplicationType(StudentApplicationType.INDIVIDUAL.getValue());
             String pinfl = individual.getPinfl();
             dto.setEmail(individual.getEmail());
-            EgovGcpResponse info = egovClient.getInfo(pinfl);
             StudentApplicationStudentInfo studentInfo =  new StudentApplicationStudentInfo();
             studentInfo.setPinfl(pinfl);
-            studentInfo.setFio(getFioFromEgovData(info));
+            studentInfo.setFio(getFioFromPinpp(studentInfo.getPinfl()));
             dto.setStudent(studentInfo);
         } else if (application instanceof StudentApplicationCorporate corporate) {
             dto.setApplicationType(StudentApplicationType.CORPORATE.getValue());
             List<StudentApplicationStudentInfo> list = corporate.getPinfls().stream().map(pinfl -> {
-                EgovGcpResponse info = egovClient.getInfo(pinfl);
                 StudentApplicationStudentInfo studentInfo = new StudentApplicationStudentInfo();
                 studentInfo.setPinfl(pinfl);
-                studentInfo.setFio(getFioFromEgovData(info));
+                studentInfo.setFio(getFioFromPinpp(pinfl));
                 return studentInfo;
             }).toList();
             dto.setStudents(list);
@@ -332,21 +329,19 @@ public class StudentApplicationService {
         return dto;
     }
 
-    private String getFioFromEgovData(EgovGcpResponse info) {
-        List<EgovGcpResponse.EgovGcpResponseData> data = info.getData();
-        EgovGcpResponse.EgovGcpResponseData first = data.get(0);
-        StringBuilder fioStrBuilder = new StringBuilder();
-        if (first.getLastNameOz() != null) {
-            fioStrBuilder.append(first.getFirstNameOz()).append(" ");
-        }
-        if (first.getFirstNameOz() != null) {
-            fioStrBuilder.append(first.getLastNameOz()).append(" ");
-        }
-        if (first.getMiddleNameOz() != null) {
-            fioStrBuilder.append(first.getMiddleNameOz()).append(" ");
-        }
-
-       return fioStrBuilder.toString();
+    private String getFioFromPinpp(String pinpp) {
+        Optional<InfoPinpp> byPinpp = infoPinppRespository.findByPinpp(pinpp);
+        InfoPinpp infoPinpp = byPinpp.orElseGet(() -> {
+            InfoPinpp newPinpp = new InfoPinpp();
+            newPinpp.setPinpp(pinpp);
+            EgovGcpResponse info = egovClient.getInfo(pinpp);
+            EgovGcpResponse.EgovGcpResponseData egovGcpResponseData = info.getData().get(0);
+            newPinpp.setFirstName(egovGcpResponseData.getFirstNameOz());
+            newPinpp.setLastName(egovGcpResponseData.getLastNameOz());
+            newPinpp.setMiddleName(egovGcpResponseData.getMiddleNameOz());
+            return infoPinppRespository.save(newPinpp);
+        });
+        return infoPinpp.getFirstName() +  " " + infoPinpp.getLastName();
     }
 
 }
