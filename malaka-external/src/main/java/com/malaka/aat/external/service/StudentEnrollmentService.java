@@ -65,7 +65,7 @@ public class StudentEnrollmentService {
 
             lastStudentEnrollmentDetail.setIsActive((short) 0);
 
-            if (lastStudentEnrollmentDetail.getContentStep() == 3) {
+            if (lastStudentEnrollmentDetail.getContentStep() == 4) {
                 throw new BadRequestException("Enrollment detail can only be updated with passing a test at this point");
             }
 

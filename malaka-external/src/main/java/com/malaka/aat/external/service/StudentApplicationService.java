@@ -1,10 +1,7 @@
 package com.malaka.aat.external.service;
 
 
-import com.malaka.aat.core.dto.BaseResponse;
-import com.malaka.aat.core.dto.ResponseStatus;
-import com.malaka.aat.core.dto.ResponseWithPagination;
-import com.malaka.aat.core.dto.StudentApplicationDto;
+import com.malaka.aat.core.dto.*;
 import com.malaka.aat.core.exception.custom.BadRequestException;
 import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
@@ -309,20 +306,47 @@ public class StudentApplicationService {
         }
 
         // Determine type and set specific fields
-        if (application instanceof StudentApplicationIndividual) {
-            StudentApplicationIndividual individual = (StudentApplicationIndividual) application;
+        if (application instanceof StudentApplicationIndividual individual) {
             dto.setApplicationType(StudentApplicationType.INDIVIDUAL.getValue());
-            dto.setPinfl(individual.getPinfl());
+            String pinfl = individual.getPinfl();
             dto.setEmail(individual.getEmail());
-        } else if (application instanceof StudentApplicationCorporate) {
-            StudentApplicationCorporate corporate = (StudentApplicationCorporate) application;
+            EgovGcpResponse info = egovClient.getInfo(pinfl);
+            StudentApplicationStudentInfo studentInfo =  new StudentApplicationStudentInfo();
+            studentInfo.setPinfl(pinfl);
+            studentInfo.setFio(getFioFromEgovData(info));
+            dto.setStudent(studentInfo);
+        } else if (application instanceof StudentApplicationCorporate corporate) {
             dto.setApplicationType(StudentApplicationType.CORPORATE.getValue());
-            dto.setPinfls(corporate.getPinfls());
+            List<StudentApplicationStudentInfo> list = corporate.getPinfls().stream().map(pinfl -> {
+                EgovGcpResponse info = egovClient.getInfo(pinfl);
+                StudentApplicationStudentInfo studentInfo = new StudentApplicationStudentInfo();
+                studentInfo.setPinfl(pinfl);
+                studentInfo.setFio(getFioFromEgovData(info));
+                return studentInfo;
+            }).toList();
+            dto.setStudents(list);
             dto.setCorporateName(corporate.getCorporateName());
             dto.setStirNumber(corporate.getStirNumber());
         }
 
         return dto;
+    }
+
+    private String getFioFromEgovData(EgovGcpResponse info) {
+        List<EgovGcpResponse.EgovGcpResponseData> data = info.getData();
+        EgovGcpResponse.EgovGcpResponseData first = data.get(0);
+        StringBuilder fioStrBuilder = new StringBuilder();
+        if (first.getLastNameOz() != null) {
+            fioStrBuilder.append(first.getFirstNameOz()).append(" ");
+        }
+        if (first.getFirstNameOz() != null) {
+            fioStrBuilder.append(first.getLastNameOz()).append(" ");
+        }
+        if (first.getMiddleNameOz() != null) {
+            fioStrBuilder.append(first.getMiddleNameOz()).append(" ");
+        }
+
+       return fioStrBuilder.toString();
     }
 
 }

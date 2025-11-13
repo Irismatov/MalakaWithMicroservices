@@ -27,11 +27,11 @@ public class StudentApplicationDto {
     private LocalDateTime createdDate;
 
     // Individual fields
-    private String pinfl;
+    private StudentApplicationStudentInfo student;
     private String email;
 
     // Corporate fields
-    private List<String> pinfls;
+    private List<StudentApplicationStudentInfo> students;
     private String corporateName;
     private String stirNumber;
 }

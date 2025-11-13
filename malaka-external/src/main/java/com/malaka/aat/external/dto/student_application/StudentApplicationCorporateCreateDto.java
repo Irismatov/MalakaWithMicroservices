@@ -31,12 +31,7 @@ public class StudentApplicationCorporateCreateDto {
     @NotBlank(message = "Stir number must be provided")
     private String stirNumber;
 
-    /**
-     * Maps DTO to StudentApplicationCorporate entity.
-     *
-     * @param dto the DTO containing corporate application data
-     * @return StudentApplicationCorporate entity with mapped fields
-     */
+
     public static StudentApplicationCorporate mapDtoToEntity(StudentApplicationCorporateCreateDto dto) {
         StudentApplicationCorporate application = new StudentApplicationCorporate();
         application.setCourseId(dto.getCourseId());

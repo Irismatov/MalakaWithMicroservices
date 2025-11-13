@@ -162,6 +162,7 @@ public class TopicService {
                     studentEnrollment,
                     lastStudentEnrollmentDetail
             );
+            studentTestAttempt.setIsSuccess((short) 1);
             studentTestAttemptRepository.save(studentTestAttempt);
         } else {
             studentTestAttempt.setIsSuccess((short) 0);
@@ -186,6 +187,8 @@ public class TopicService {
 
 
         BaseResponse response = new BaseResponse();
+        List<TestAttemptResponseDtoItem> list = testAttempts.stream().map(this::mapTestAttemptEntityToDto).toList();
+        response.setData(list);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
     }
@@ -280,7 +283,7 @@ public class TopicService {
             TestAttemptRequestDtoItem request = new TestAttemptRequestDtoItem();
             request.setQuestionId(e.getId());
             request.setOptionId(
-                    e.getOptions().stream().filter(o -> o.getIsCorrect() == 0).findFirst().orElseThrow(() -> new NotFoundException("OptionNotFound")).getId()
+                    e.getOptions().stream().filter(o -> o.getIsCorrect() == 1).findFirst().orElseThrow(() -> new NotFoundException("OptionNotFound")).getId()
             );
             return request;
         }).toList();
