@@ -270,4 +270,23 @@ public class TopicService {
         dto.setCorrectAnswerPercentage(entity.getCorrectAnswerPercentage());
         return dto;
     }
+
+    public BaseResponse getCorrectAnswers(String topicId) {
+        BaseResponse response = new BaseResponse();
+
+        BaseResponse internalResponse = malakaInternalClient.getTestByTopicId(topicId);
+        com.malaka.aat.external.dto.test.with_answer.TestDto testDto = objectMapper.convertValue(internalResponse.getData(), com.malaka.aat.external.dto.test.with_answer.TestDto.class);
+        List<TestAttemptRequestDtoItem> list = testDto.getQuestions().stream().map(e -> {
+            TestAttemptRequestDtoItem request = new TestAttemptRequestDtoItem();
+            request.setQuestionId(e.getId());
+            request.setOptionId(
+                    e.getOptions().stream().filter(o -> o.getIsCorrect() == 0).findFirst().orElseThrow(() -> new NotFoundException("OptionNotFound")).getId()
+            );
+            return request;
+        }).toList();
+
+        response.setData(list);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
+    }
 }

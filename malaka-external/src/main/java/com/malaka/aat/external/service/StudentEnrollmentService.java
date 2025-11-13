@@ -64,6 +64,11 @@ public class StudentEnrollmentService {
                     .orElseThrow(() -> new SystemException("Student enrollment detail not found"));
 
             lastStudentEnrollmentDetail.setIsActive((short) 0);
+
+            if (lastStudentEnrollmentDetail.getContentStep() == 3) {
+                throw new BadRequestException("Enrollment detail can only be updated with passing a test at this point");
+            }
+
             studentEnrollmentDetailRepository.save(lastStudentEnrollmentDetail);
 
             int currentModuleStep = lastStudentEnrollmentDetail.getModuleStep();

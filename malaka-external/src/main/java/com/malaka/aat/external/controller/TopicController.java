@@ -61,4 +61,9 @@ public class TopicController {
     ) {
         return topicService.testAttemptList(groupId, topicId);
     }
+
+    @GetMapping("/topic/{topicId}/correct-answers")
+    public  BaseResponse correctAnswer (@PathVariable String topicId) {
+        return topicService.getCorrectAnswers(topicId);
+    }
 }
