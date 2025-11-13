@@ -6,11 +6,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 @Setter
 @Getter
 @Entity
 @Table(name = "student_type_spr")
+@SQLRestriction("is_deleted = 0")
+@SQLDelete(sql = "UPDATE student_type_spr SET is_deleted = 1 WHERE id = ?")
 public class StudentTypeSpr {
     @Id
     @Column(name = "id")

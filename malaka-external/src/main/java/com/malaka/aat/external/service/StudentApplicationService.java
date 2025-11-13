@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.Year;
+import java.util.Arrays;
 
 @Slf4j
 @Service
@@ -46,14 +47,13 @@ public class StudentApplicationService {
     private final StudentApplicationRepository studentApplicationRepository;
     private final FileService fileService;
     private final MalakaInternalClient malakaInternalClient;
-    private final StudentTypeSprService studentTypeSprService;
     private final EgovClient egovClient;
     private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final EntityManager entityManager;
     private final RoleRepository roleRepository;
     private final StudentTypeSprRepository studentTypeSprRepository;
+    private final StudentApplicationLogService studentApplicationLogService;
 
     public BaseResponse saveIndividualApplication(StudentApplicationIndividualCreateDto dto) {
         BaseResponse response = new BaseResponse();
@@ -88,6 +88,7 @@ public class StudentApplicationService {
         studentApplicationIndividual.setNumber(number);
         studentApplicationIndividual.setStatus(StudentApplicationStatus.CREATED);
         StudentApplicationIndividual save = studentApplicationRepository.save(studentApplicationIndividual);
+        studentApplicationLogService.save(studentApplicationIndividual, StudentApplicationStatus.CREATED, null);
         StudentApplicationDto studentApplicationDto = convertToDto(save);
         response.setData(studentApplicationDto);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
@@ -150,6 +151,7 @@ public class StudentApplicationService {
         studentApplicationCorporate.setNumber(number);
         studentApplicationCorporate.setStatus(StudentApplicationStatus.CREATED);
         StudentApplicationCorporate save = studentApplicationRepository.save(studentApplicationCorporate);
+        studentApplicationLogService.save(studentApplicationCorporate, StudentApplicationStatus.CREATED, null);
         StudentApplicationDto studentApplicationDto = convertToDto(save);
         response.setData(studentApplicationDto);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
@@ -196,6 +198,10 @@ public class StudentApplicationService {
         StudentApplication application = findById(id);
         StudentApplicationStatus.setStatus(application, dto.getStatus());
         studentApplicationRepository.save(application);
+        StudentApplicationStatus studentApplicationStatus = Arrays.stream(StudentApplicationStatus.values()).
+                filter(f -> f.getValue() == dto.getStatus())
+                .findFirst().orElseThrow(() -> new NotFoundException("Application status not found with value " + dto.getStatus()));
+        studentApplicationLogService.save(application, studentApplicationStatus, dto.getDescription());
 
         if (dto.getStatus() == StudentApplicationStatus.ACCEPTED.getValue()) {
             createStudentsFromStudentApplication(application);
