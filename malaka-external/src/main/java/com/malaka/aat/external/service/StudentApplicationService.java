@@ -57,6 +57,7 @@ public class StudentApplicationService {
     private final RoleRepository roleRepository;
     private final StudentTypeSprRepository studentTypeSprRepository;
     private final StudentApplicationLogService studentApplicationLogService;
+    private final SessionService sessionService;
 
     public BaseResponse saveIndividualApplication(StudentApplicationIndividualCreateDto dto) {
         BaseResponse response = new BaseResponse();
@@ -168,9 +169,18 @@ public class StudentApplicationService {
         try {
             // Create pageable with sorting by creation date descending
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updtime"));
+            User currentUser = sessionService.getCurrentUser();
+            boolean isAdmin = currentUser.getRoles().stream().anyMatch(f ->
+                    f.getName().equals("ADMIN") || f.getName().equals("SUPER_ADMIN"));
+
 
             // Fetch applications from repository
-            Page<StudentApplication> applicationPage = studentApplicationRepository.findAll(pageable);
+            Page<StudentApplication> applicationPage;
+            if (isAdmin) {
+                applicationPage = studentApplicationRepository.findAll(pageable);
+            } else {
+                applicationPage = studentApplicationRepository.findAllByInsuser(currentUser.getId(), pageable);
+            }
 
             // Convert entities to DTOs and create a new Page with DTOs
             Page<StudentApplicationDto> dtoPage = applicationPage.map(this::convertToDto);

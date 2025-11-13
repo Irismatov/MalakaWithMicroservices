@@ -148,10 +148,7 @@ public class DataLoader implements CommandLineRunner {
         return true;
     }
 
-    /**
-     * Creates a service account for inter-service communication.
-     * Service accounts have specific passwords and minimal required information.
-     */
+
     private boolean createServiceAccountIfNotExists(
             String username,
             String roleName,
