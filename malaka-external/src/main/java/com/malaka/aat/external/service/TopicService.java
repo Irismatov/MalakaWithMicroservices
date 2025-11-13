@@ -155,7 +155,7 @@ public class TopicService {
         studentTestAttempt.setCorrectAnswerPercentage(percentage);
         studentTestAttempt.setAttemptNumber(testAttempts.size()+1);
         studentTestAttempt.setTotalQuestions(testDto.getQuestions().size());
-        if (percentage >= 60) {
+        if (percentage >= 70) {
             studentEnrollmentService.updateAndSaveStepOfModule(
                     moduleDto.getTopicCount(),
                     courseDto.getModuleCount(),

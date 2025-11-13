@@ -15,6 +15,7 @@ public class TestDto {
 
     private String id;
     private Integer attemptLimit;
+    private Integer durationInMinutes;
     private List<TestQuestionDto> questions;
 
     public TestDto(Test test) {
