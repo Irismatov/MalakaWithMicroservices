@@ -12,4 +12,5 @@ public class StudentApplicationUpdateDto {
     @Min(value = 1, message = "Status must be at least 1")
     @Max(value = 2, message = "Status must be at most 2")
     private Integer status;
+    private String description;
 }

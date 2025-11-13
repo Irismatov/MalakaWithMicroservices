@@ -5,6 +5,7 @@ import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseStatus;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.core.dto.StudentApplicationDto;
+import com.malaka.aat.core.exception.custom.BadRequestException;
 import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
@@ -15,6 +16,7 @@ import com.malaka.aat.external.dto.student_application.StudentApplicationUpdateD
 import com.malaka.aat.external.enumerators.student_application.StudentApplicationStatus;
 import com.malaka.aat.external.enumerators.student_application.StudentApplicationType;
 import com.malaka.aat.external.model.*;
+import com.malaka.aat.external.model.spr.StudentApplicationStatusLog;
 import com.malaka.aat.external.model.spr.StudentTypeSpr;
 import com.malaka.aat.external.repository.RoleRepository;
 import com.malaka.aat.external.repository.StudentApplicationRepository;
@@ -38,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.Year;
 import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -196,11 +199,18 @@ public class StudentApplicationService {
         ResponseWithPagination response = new ResponseWithPagination();
 
         StudentApplication application = findById(id);
-        StudentApplicationStatus.setStatus(application, dto.getStatus());
-        studentApplicationRepository.save(application);
+
         StudentApplicationStatus studentApplicationStatus = Arrays.stream(StudentApplicationStatus.values()).
                 filter(f -> f.getValue() == dto.getStatus())
                 .findFirst().orElseThrow(() -> new NotFoundException("Application status not found with value " + dto.getStatus()));
+
+        if (studentApplicationStatus == StudentApplicationStatus.REJECTED && dto.getDescription() == null) {
+            throw new BadRequestException("Description is required");
+        }
+        StudentApplicationStatus.setStatus(application, dto.getStatus());
+        studentApplicationRepository.save(application);
+
+
         studentApplicationLogService.save(application, studentApplicationStatus, dto.getDescription());
 
         if (dto.getStatus() == StudentApplicationStatus.ACCEPTED.getValue()) {
@@ -283,6 +293,10 @@ public class StudentApplicationService {
         dto.setFileId(application.getFile() != null ? application.getFile().getId() : null);
         dto.setCreatedDate(application.getInstime());
         dto.setNumber(application.getNumber());
+        if (application.getStatus() == StudentApplicationStatus.REJECTED) {
+            List<StudentApplicationStatusLog> history = application.getHistory();
+            dto.setRejectionReason(history.get(history.size()-1).getDescription());
+        }
 
         // Determine type and set specific fields
         if (application instanceof StudentApplicationIndividual) {

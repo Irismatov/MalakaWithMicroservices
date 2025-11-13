@@ -1,5 +1,6 @@
 package com.malaka.aat.external.model.spr;
 
+import com.malaka.aat.external.model.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -15,7 +16,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Table(name = "student_type_spr")
 @SQLRestriction("is_deleted = 0")
 @SQLDelete(sql = "UPDATE student_type_spr SET is_deleted = 1 WHERE id = ?")
-public class StudentTypeSpr {
+public class StudentTypeSpr extends BaseEntity {
     @Id
     @Column(name = "id")
     private Long id;

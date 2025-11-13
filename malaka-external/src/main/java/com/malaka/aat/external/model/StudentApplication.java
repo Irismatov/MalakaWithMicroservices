@@ -1,6 +1,7 @@
 package com.malaka.aat.external.model;
 
 import com.malaka.aat.external.enumerators.student_application.StudentApplicationStatus;
+import com.malaka.aat.external.model.spr.StudentApplicationStatusLog;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -37,6 +38,8 @@ public class StudentApplication extends BaseEntity{
     private File file;
     @Column(name = "phone", length = 50)
     private String phone;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "application")
+    private List<StudentApplicationStatusLog> history;
 
 
     @Converter

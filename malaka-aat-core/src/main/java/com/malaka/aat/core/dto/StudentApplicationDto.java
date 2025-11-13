@@ -9,9 +9,7 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/**
- * DTO for student application data to be shared between services.
- */
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -23,6 +21,7 @@ public class StudentApplicationDto {
     private String phone;
     private Integer applicationType;
     private Integer status;
+    private String rejectionReason;
     private String fileId;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdDate;
