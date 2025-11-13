@@ -257,9 +257,9 @@ public class ModuleService {
         for (Topic topic : topics) {
             List<String> missingItems = new ArrayList<>();
 
-            if (topic.getContentFile() == null) {
-                missingItems.add("content (video/audio)");
-            }
+//            if (topic.getContentFile() == null) {
+//                missingItems.add("content (video/audio)");
+//            }
             if (topic.getLectureFile() == null) {
                 missingItems.add("lecture (PDF)");
             }

@@ -227,9 +227,10 @@ public class DataLoader implements CommandLineRunner {
         int created = 0;
 
         // Create default course formats matching the old enum values
-        created += createCourseFormatIfNotExists(0L, "OFFLINE", "Offline training format") ? 1 : 0;
-        created += createCourseFormatIfNotExists(1L, "ONLINE", "Online training format") ? 1 : 0;
-        created += createCourseFormatIfNotExists(2L, "OFFLINE_ONLINE", "Hybrid offline and online training format") ? 1 : 0;
+        created += createCourseFormatIfNotExists(0L, "OFFLINE", "Kurslar to'liq dastur ichida tugatiladi ZOOM darslar mavjud emas") ? 1 : 0;
+        created += createCourseFormatIfNotExists(1L, "ONLINE", "Kurslar to'liq dastur ichida tugatiladi, ZOOM darslari bo'lishi mumkin") ? 1 : 0;
+        created += createCourseFormatIfNotExists(2L, "ARALASH", "1oy online va 2 oy muassasada o'qitiladigan kurs") ? 1 : 0;
+        created += createCourseFormatIfNotExists(3L, "An’anaviy", "Faqat muassasada o'rgatiladi, faqatgina yakuniy testdan o'tish majburiy") ? 1 : 0;
 
         if (created > 0) {
             log.info("Created {} new course format(s)", created);
@@ -253,8 +254,9 @@ public class DataLoader implements CommandLineRunner {
         int created = 0;
 
         // Create default course types matching the old enum values (starting from 0)
-        created += createCourseTypeIfNotExists(0L, "ASOSIY", "Primary training type") ? 1 : 0;
-        created += createCourseTypeIfNotExists(1L, "QO'SHIMCHA", "Secondary training type") ? 1 : 0;
+        created += createCourseTypeIfNotExists(0L, "ASOSIY", "Asosiy kurs") ? 1 : 0;
+        created += createCourseTypeIfNotExists(1L, "QO'SHIMCHA", "Qo'shimcha kurs") ? 1 : 0;
+        created += createCourseTypeIfNotExists(2L, "Sohaviy", "Faqt ichki hodimlar uchuh") ? 1 : 0;
 
         if (created > 0) {
             log.info("Created {} new course type(s)", created);

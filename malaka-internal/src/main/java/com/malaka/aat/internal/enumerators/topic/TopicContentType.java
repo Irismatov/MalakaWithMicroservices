@@ -9,7 +9,8 @@ import lombok.Getter;
 public enum TopicContentType {
     VIDEO(0),
     AUDIO(1),
-    ZOOM(2);
+    ZOOM(2),
+    CONFIDENTIAL(3);
 
 
     private final int value;

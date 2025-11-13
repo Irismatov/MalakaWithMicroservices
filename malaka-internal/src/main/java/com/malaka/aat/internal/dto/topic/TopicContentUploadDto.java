@@ -13,6 +13,6 @@ public class TopicContentUploadDto {
     private MultipartFile file;
     @NotNull(message = "Content type must be provided")
     @Min(0)
-    @Max(2)
+    @Max(3)
     private Integer contentType;
 }
