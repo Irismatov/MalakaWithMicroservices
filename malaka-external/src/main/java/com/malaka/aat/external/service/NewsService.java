@@ -1,10 +1,13 @@
 package com.malaka.aat.external.service;
 
+import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseStatus;
 import com.malaka.aat.core.dto.ResponseWithPagination;
+import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.external.dto.news.NewsCreateDto;
+import com.malaka.aat.external.dto.news.NewsUpdateDto;
 import com.malaka.aat.external.model.File;
 import com.malaka.aat.external.model.News;
 import com.malaka.aat.external.repository.NewsRepository;
@@ -42,4 +45,16 @@ public class NewsService {
         return response;
     }
 
+    public ResponseWithPagination update(String id, NewsUpdateDto dto) {
+        News news = newsRepository.findById(id).orElseThrow(
+                () -> new NotFoundException("News not found with id: " + id)
+        );
+        if (dto.getTitle() != null) {
+
+        }
+
+
+        ResponseWithPagination response = new ResponseWithPagination();
+        return response;
+    }
 }

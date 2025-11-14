@@ -3,7 +3,7 @@ server:
 
 app:
   file:
-    path: D:/MalakaFiles/external/images/
+    path: C:/Users/j.irismatov/Desktop/MalakaFiles/external/images/
   security:
     secretKey: Y1ZNbXM1aGZTaWlxbnowMWc3UTFuSTgxZEp5eFdKdjE=
     accessTokenExpirationInHours: 1
@@ -11,7 +11,7 @@ app:
 
 spring:
   profiles:
-    active: local
+    active: test
   servlet:
     multipart:
       enabled: true

@@ -26,8 +26,8 @@ app:
     accessTokenExpirationInHours: 1
     refreshTokenExpirationInHours: 24
   file:
-    path: D:/MalakaFiles/internal/images/
-    video-path: D:/MalakaFiles/internal/videos/
+    path: C:/Users/j.irismatov/Desktop/MalakaFiles/internal/images/
+    video-path: C:/Users/j.irismatov/Desktop/MalakaFiles/internal/videos/
     chunk-size: 5242880
 
 # Client Configuration for External Services
