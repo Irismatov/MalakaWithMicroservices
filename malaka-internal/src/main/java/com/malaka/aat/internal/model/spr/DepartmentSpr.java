@@ -16,7 +16,7 @@ public class DepartmentSpr extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "ID", length = 50)
     private String ID;
-    @Column(length = 50, nullable = false, columnDefinition = "VARCHAR(50) CCSID 1208")
+    @Column(length = 50, nullable = false, columnDefinition = "VARCHAR(50)")
     private String name;
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_head_id", referencedColumnName = "ID")

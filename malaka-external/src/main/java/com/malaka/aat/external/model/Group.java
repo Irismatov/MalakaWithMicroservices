@@ -12,7 +12,7 @@ import java.util.Set;
 
 @Getter
 @Setter
-@Table(name = "group")
+@Table(name = "groups")
 @Entity
 @SQLRestriction("is_deleted = 0")
 @SQLDelete(sql = "UPDATE group SET is_deleted = 1 WHERE id = ?")
@@ -23,7 +23,7 @@ public class Group extends BaseEntity {
     private String id;
     @Column(name = "name", length = 200)
     private String name;
-    @Column(name = "order")
+    @Column(name = "order_number")
     private Integer order;
     @Column(name = "course_id",  length = 50, nullable = false)
     private String courseId;

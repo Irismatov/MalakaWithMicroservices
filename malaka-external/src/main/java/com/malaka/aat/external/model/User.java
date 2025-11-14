@@ -31,11 +31,11 @@ public class User extends BaseEntity {
     @Column(name = "user_password", columnDefinition = "VARCHAR(1000)")
     @Size(min = 1, message = "Илтимос паролни киритинг")
     private String password;
-    @Column(name = "first_name", length = 200, columnDefinition = "VARCHAR(200) CCSID 1208")
+    @Column(name = "first_name", length = 200, columnDefinition = "VARCHAR(200)")
     private String firstName;
-    @Column(name = "last_name", length = 200, columnDefinition = "VARCHAR(200) CCSID 1208")
+    @Column(name = "last_name", length = 200, columnDefinition = "VARCHAR(200)")
     private String lastName;
-    @Column(name = "middle_name", length = 200, columnDefinition = "VARCHAR(200) CCSID 1208")
+    @Column(name = "middle_name", length = 200, columnDefinition = "VARCHAR(200)")
     private String middleName;
     @Column(name = "pinfl", length = 20)
     private String pinfl;

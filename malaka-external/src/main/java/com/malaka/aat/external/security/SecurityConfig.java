@@ -38,7 +38,8 @@ public class SecurityConfig {
             "/webjars/**",                 // WebJars (Swagger UI dependencies)
             "/uploads/images/**",          // Public access to uploaded files
             "/actuator/health",            // Health check endpoint
-            "/actuator/info"               // Info endpoint
+            "/actuator/info",               // Info endpoint
+            "/h2-console/**"
     };
 
     @Bean

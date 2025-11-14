@@ -28,9 +28,9 @@ public class StudentApplication extends BaseEntity{
     private String id;
     @Column(name = "number", length = 50, nullable = false)
     private String number;
-    @Enumerated(value = EnumType.ORDINAL)
-    @Column(name = "status", columnDefinition = " INT default 0")
-    private StudentApplicationStatus status;
+    @Column(name = "status")
+    @Enumerated(EnumType.ORDINAL)
+    private StudentApplicationStatus status = StudentApplicationStatus.CREATED;
     @Column(name = "course_id", length = 50, nullable = false)
     private String courseId;
     @ManyToOne(fetch = FetchType.LAZY)

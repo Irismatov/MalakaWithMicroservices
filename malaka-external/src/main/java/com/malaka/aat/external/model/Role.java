@@ -21,10 +21,10 @@ public class Role extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(name = "name", length = 50, nullable = false, columnDefinition = "VARCHAR(50) CCSID 1208")
+    @Column(name = "name", length = 50, nullable = false, columnDefinition = "VARCHAR(50)")
     private String name;
 
-    @Column(name = "description", length = 500, columnDefinition = "VARCHAR(500) CCSID 1208")
+    @Column(name = "description", length = 500, columnDefinition = "VARCHAR(500)")
     private String description;
 
 

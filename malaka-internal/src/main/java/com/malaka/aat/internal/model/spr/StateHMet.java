@@ -27,13 +27,13 @@ public class StateHMet extends BaseEntity {
     @Column(length = 20)
     private String aplcPnfl;
 
-    @Column(length = 1200, columnDefinition = "VARCHAR(1200) CCSID 1208")
+    @Column(length = 1200, columnDefinition = "VARCHAR(1200)")
     private String aplcRppnNm;
 
     @Column(length = 50)
     private String aplcTelno;
 
-    @Column(length = 3600, columnDefinition = "VARCHAR(3600) CCSID 1208")
+    @Column(length = 3600, columnDefinition = "VARCHAR(3600)")
     private String descriptions;
 
     @Column(length = 3)
@@ -45,7 +45,7 @@ public class StateHMet extends BaseEntity {
     @Column(length = 2)
     private String darsType;
 
-    @Column(name = "state_nm", length = 500, nullable = false, columnDefinition = "VARCHAR(500) CCSID 1208")
+    @Column(name = "state_nm", length = 500, nullable = false, columnDefinition = "VARCHAR(500)")
     private String stateNm;
 
     @Column(name = "state_cd", nullable = false, length = 10)

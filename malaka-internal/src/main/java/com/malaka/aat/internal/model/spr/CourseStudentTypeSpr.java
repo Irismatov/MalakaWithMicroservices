@@ -21,9 +21,9 @@ public class CourseStudentTypeSpr extends BaseEntity {
     @Column(name = "id")
     private Long id;
 
-    @Column(length = 50, nullable = false, unique = true, columnDefinition = "VARCHAR(50) CCSID 1208")
+    @Column(length = 50, nullable = false, unique = true, columnDefinition = "VARCHAR(50)")
     private String name;
 
-    @Column(length = 200, columnDefinition = "VARCHAR(200) CCSID 1208")
+    @Column(length = 200, columnDefinition = "VARCHAR(200)")
     private String description;
 }

@@ -26,7 +26,7 @@ public class Module extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", length = 50, nullable = false)
     private String id;
-    @Column(name = "name", length = 200, columnDefinition = "VARCHAR(200) CCSID 1208")
+    @Column(name = "name", length = 200, columnDefinition = "VARCHAR(200)")
     private String name;
     @Column(name = "topic_count")
     private Integer topicCount;

@@ -19,7 +19,7 @@ public class QuestionOption extends BaseEntity {
     @Column(name = "id", length = 50, nullable = false)
     private String id;
 
-    @Column(name = "option_text", length = 1000, columnDefinition = "VARCHAR(1000) CCSID 1208")
+    @Column(name = "option_text", length = 1000, columnDefinition = "VARCHAR(1000)")
     private String optionText;
 
     @Column(name = "is_correct", nullable = false)

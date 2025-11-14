@@ -21,7 +21,7 @@ public class TestQuestion extends BaseEntity {
     @Column(name = "id", length = 50, nullable = false)
     private String id;
 
-    @Column(name = "question_text", length = 3000, nullable = false, columnDefinition = "VARCHAR(3000) CCSID 1208")
+    @Column(name = "question_text", length = 3000, nullable = false, columnDefinition = "VARCHAR(3000)")
     private String questionText;
 
     @Column(name = "has_image")

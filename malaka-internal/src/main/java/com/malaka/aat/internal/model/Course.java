@@ -22,9 +22,9 @@ public class Course extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "ID", nullable = false, length = 50)
     private String id;
-    @Column(name = "name", length = 200, columnDefinition = "VARCHAR(200) CCSID 1208")
+    @Column(name = "name", length = 200, columnDefinition = "VARCHAR(200)")
     private String name;
-    @Column(name = "description", length = 1500, columnDefinition = "VARCHAR(1500) CCSID 1208")
+    @Column(name = "description", length = 1500, columnDefinition = "VARCHAR(1500)")
     private String description;
     @Column(name = "state", length = 5)
     private String state;

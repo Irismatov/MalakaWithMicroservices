@@ -28,6 +28,6 @@ public class StudentApplicationStatusLog extends BaseEntity {
     private String statusCode;
     @Column(name = "description", length = 10000)
     private String description;
-    @Column(name = "order", nullable = false)
+    @Column(name = "order_number", nullable = false)
     private Integer order;
 }
