@@ -1,5 +1,6 @@
 package com.malaka.aat.external.controller;
 
+import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.external.dto.news.NewsCreateDto;
 import com.malaka.aat.external.dto.news.NewsUpdateDto;
@@ -29,5 +30,23 @@ public class NewsController {
     public ResponseWithPagination update(@PathVariable String id, @ModelAttribute @Validated NewsUpdateDto dto) {
         return newsService.update(id, dto);
     };
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @DeleteMapping("/news/{id}")
+    public ResponseWithPagination delete(@PathVariable String id) {
+        return newsService.delete(id);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @GetMapping("/news")
+    public ResponseWithPagination getAll() {
+        return newsService.getAll();
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @GetMapping("/news/{id}")
+    public BaseResponse getDetail(@PathVariable String id) {
+        return newsService.getDetail(id);
+    }
 
 }
