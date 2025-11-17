@@ -26,7 +26,8 @@ public interface MalakaExternalClient {
     @GetMapping("/api/external/application")
     ResponseWithPagination getApplications(
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "status", required = false) Integer status
     );
 
     @PutMapping("/api/external/application/status/{id}")

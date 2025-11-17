@@ -50,10 +50,11 @@ public class StudentApplicationController {
     public ResponseWithPagination getApplications(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "status", required = false) Integer status,
             @RequestHeader(value = "X-Internal-Request",required = false) String serviceName
     ) {
         boolean isInternal = serviceName != null;
-        return studentApplicationService.getApplicationsWithPagination(page, size, isInternal);
+        return studentApplicationService.getApplicationsWithPagination(page, size, status, isInternal);
     }
 
     @GetMapping("/application/{id}/file")

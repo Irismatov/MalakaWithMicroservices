@@ -19,11 +19,11 @@ public class StudentApplicationService {
 
 
 
-    public ResponseWithPagination getApplicationsWithPagination(int page, int size) {
+    public ResponseWithPagination getApplicationsWithPagination(int page, int size, Integer status) {
         log.info("Fetching applications from malaka-external: page={}, size={}", page, size);
 
         try {
-            ResponseWithPagination response = malakaExternalClient.getApplications(page, size);
+            ResponseWithPagination response = malakaExternalClient.getApplications(page, size, status);
             log.debug("Successfully fetched {} applications from external service",
                 response.getData() != null ? ((java.util.List<?>) response.getData()).size() : 0);
             return response;

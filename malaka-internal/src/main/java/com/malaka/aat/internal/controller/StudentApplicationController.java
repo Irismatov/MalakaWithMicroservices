@@ -28,9 +28,10 @@ public class StudentApplicationController {
     @GetMapping("/application")
     public ResponseWithPagination getApplicationsWithPagination(
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "status", required = false) Integer status
     ) {
-        return studentApplicationService.getApplicationsWithPagination(page, size);
+        return studentApplicationService.getApplicationsWithPagination(page, size, status);
     }
 
     @PreAuthorize("hasAnyRole('METHODIST', 'ADMIN', 'SUPER_ADMIN')")

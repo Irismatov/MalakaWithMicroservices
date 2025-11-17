@@ -164,7 +164,7 @@ public class StudentApplicationService {
     }
 
 
-    public ResponseWithPagination getApplicationsWithPagination(int page, int size, boolean isInternal) {
+    public ResponseWithPagination getApplicationsWithPagination(int page, int size, Integer status, boolean isInternal) {
         ResponseWithPagination response = new ResponseWithPagination();
 
         try {
@@ -174,13 +174,20 @@ public class StudentApplicationService {
             boolean isAdmin = currentUser.getRoles().stream().anyMatch(f ->
                     f.getName().equals("ADMIN") || f.getName().equals("SUPER_ADMIN"));
 
+            StudentApplicationStatus applicationStatus = null;
+            if (status != null) {
+                applicationStatus = Arrays.stream(StudentApplicationStatus.values())
+                        .filter(e -> e.getValue() == status)
+                        .findFirst().orElseThrow(() -> new NotFoundException("Application status not found: " + status));
+
+            }
 
             // Fetch applications from repository
             Page<StudentApplication> applicationPage;
             if (isAdmin) {
-                applicationPage = studentApplicationRepository.findAll(pageable);
+                applicationPage = studentApplicationRepository.findByInsuserAndStatus(null, applicationStatus, pageable);
             } else {
-                applicationPage = studentApplicationRepository.findAllByInsuser(currentUser.getId(), pageable);
+                applicationPage = studentApplicationRepository.findByInsuserAndStatus(currentUser.getId(), applicationStatus, pageable);
             }
 
             // Convert entities to DTOs and create a new Page with DTOs
@@ -366,7 +373,20 @@ public class StudentApplicationService {
             newPinpp.setMiddleName(egovGcpResponseData.getMiddleNameOz());
             return infoPinppRespository.save(newPinpp);
         });
-        return infoPinpp.getLastName() +  " " + infoPinpp.getFirstName();
+        String firstName = "";
+        String lastName = "";
+        String  middleName = "";
+        if (infoPinpp.getFirstName() != null) {
+            firstName = infoPinpp.getFirstName();
+        }
+        if (infoPinpp.getLastName() != null) {
+            lastName = infoPinpp.getLastName();
+        }
+        if (infoPinpp.getMiddleName() != null) {
+            middleName = infoPinpp.getMiddleName();
+        }
+        return lastName + " " + firstName + " " + middleName;
+
     }
 
     public File getApplicationFile(String id) {
