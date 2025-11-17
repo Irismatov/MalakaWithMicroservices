@@ -275,6 +275,10 @@ public class StudentApplicationService {
         }
     }
 
+    private void setStudentDetailsFromEgov(String pinfl, Student student) {
+
+    }
+
     private User getOrCreateUserByPinfl(String pinfl) {
         Role userRole = roleRepository.findByName("USER").orElseThrow(() -> new SystemException("User role not found"));
 
