@@ -25,14 +25,4 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploads/videos/**")
                 .addResourceLocations("file:" + videoPath);
     }
-
-//    @Override
-//    public void addCorsMappings(CorsRegistry registry) {
-//        registry.addMapping("/**")
-//                .allowedOriginPatterns("*")
-//                .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-//                .allowedHeaders("*")
-//                .allowCredentials(true)
-//                .maxAge(3600);
-//    }
 }

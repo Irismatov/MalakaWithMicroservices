@@ -25,10 +25,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final String[] WHITE_LIST = {
-            "/api/external/auth/**",       // External auth endpoints (public)
-            "/api/external/info/**",       // E-Gov info endpoints (public)
-            "/api/external/application/**", // Student application endpoints (public)
-            "/api/external/file/**",       // File download endpoints (public)
+            "/api/external/auth/**",       // External auth endpoints (public),
+            "/api/external/uploads/images/**",
             "/h2-console/**",
             "/swagger-ui/**",              // Swagger UI resources
             "/swagger-ui.html",            // Swagger UI HTML page
