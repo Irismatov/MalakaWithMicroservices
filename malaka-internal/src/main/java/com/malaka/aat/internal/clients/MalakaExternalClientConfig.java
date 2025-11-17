@@ -8,10 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Configuration for Feign Client to communicate with malaka-external service.
- * This configuration uses service account authentication for inter-service communication.
- */
+
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
@@ -19,10 +16,6 @@ public class MalakaExternalClientConfig {
 
     private final ExternalServiceAuthenticationService authService;
 
-    /**
-     * Request interceptor that adds service account JWT token
-     * to all outgoing Feign client requests to malaka-external.
-     */
     @Bean
     public RequestInterceptor externalServiceRequestInterceptor() {
         return new RequestInterceptor() {
@@ -35,6 +28,7 @@ public class MalakaExternalClientConfig {
                     if (accessToken != null && !accessToken.isEmpty()) {
                         log.debug("Adding service account Authorization header to Feign request for malaka-external");
                         template.header("Authorization", "Bearer " + accessToken);
+                        template.header("X-Internal-Request", "account-service");
                     } else {
                         log.warn("No access token available for malaka-external request");
                     }
@@ -47,9 +41,7 @@ public class MalakaExternalClientConfig {
         };
     }
 
-    /**
-     * Error decoder to handle 401/403 responses by invalidating cached token
-     */
+
     @Bean
     public feign.codec.ErrorDecoder externalServiceErrorDecoder() {
         return (methodKey, response) -> {

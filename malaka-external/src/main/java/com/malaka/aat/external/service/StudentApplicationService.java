@@ -24,6 +24,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +43,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class StudentApplicationService {
+
+    @Value("${app.projectUrl}")
+    private String projectUrl;
 
     private final StudentApplicationRepository studentApplicationRepository;
     private final FileService fileService;
@@ -90,7 +94,7 @@ public class StudentApplicationService {
         studentApplicationIndividual.setStatus(StudentApplicationStatus.CREATED);
         StudentApplicationIndividual save = studentApplicationRepository.save(studentApplicationIndividual);
         studentApplicationLogService.save(studentApplicationIndividual, StudentApplicationStatus.CREATED, null);
-        StudentApplicationDto studentApplicationDto = convertToDto(save);
+        StudentApplicationDto studentApplicationDto = convertToDto(save, false);
         response.setData(studentApplicationDto);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
@@ -153,14 +157,14 @@ public class StudentApplicationService {
         studentApplicationCorporate.setStatus(StudentApplicationStatus.CREATED);
         StudentApplicationCorporate save = studentApplicationRepository.save(studentApplicationCorporate);
         studentApplicationLogService.save(studentApplicationCorporate, StudentApplicationStatus.CREATED, null);
-        StudentApplicationDto studentApplicationDto = convertToDto(save);
+        StudentApplicationDto studentApplicationDto = convertToDto(save, false);
         response.setData(studentApplicationDto);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
     }
 
 
-    public ResponseWithPagination getApplicationsWithPagination(int page, int size) {
+    public ResponseWithPagination getApplicationsWithPagination(int page, int size, boolean isInternal) {
         ResponseWithPagination response = new ResponseWithPagination();
 
         try {
@@ -180,7 +184,7 @@ public class StudentApplicationService {
             }
 
             // Convert entities to DTOs and create a new Page with DTOs
-            Page<StudentApplicationDto> dtoPage = applicationPage.map(this::convertToDto);
+            Page<StudentApplicationDto> dtoPage = applicationPage.map(e -> this.convertToDto(e, isInternal));
 
             // Use the setData method that handles pagination automatically
             response.setData(dtoPage, page);
@@ -202,7 +206,7 @@ public class StudentApplicationService {
     }
 
     @Transactional
-    public ResponseWithPagination updateApplicationStatus(String id, @Valid StudentApplicationUpdateDto dto) {
+    public ResponseWithPagination updateApplicationStatus(String id, @Valid StudentApplicationUpdateDto dto, boolean isInternal) {
         ResponseWithPagination response = new ResponseWithPagination();
 
         StudentApplication application = findById(id);
@@ -227,7 +231,7 @@ public class StudentApplicationService {
         Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "updtime"));
         Page<StudentApplication> applicationPage = studentApplicationRepository.findAll(pageable);
         // Convert entities to DTOs and create a new Page with DTOs
-        Page<StudentApplicationDto> dtoPage = applicationPage.map(this::convertToDto);
+        Page<StudentApplicationDto> dtoPage = applicationPage.map(e -> this.convertToDto(e, isInternal));
 
 
         response.setData(dtoPage, 0);
@@ -291,13 +295,13 @@ public class StudentApplicationService {
         return user;
     }
 
-    private StudentApplicationDto convertToDto(StudentApplication application) {
+    private StudentApplicationDto convertToDto(StudentApplication application, boolean isInternal) {
         StudentApplicationDto dto = new StudentApplicationDto();
         dto.setId(application.getId());
         dto.setCourseId(application.getCourseId());
         dto.setPhone(application.getPhone());
         dto.setStatus(application.getStatus() != null ? application.getStatus().ordinal() : null);
-        dto.setFileId(application.getFile() != null ? application.getFile().getId() : null);
+        dto.setFileUrl(getFileUrl(application.getId(), isInternal));
         dto.setCreatedDate(application.getInstime());
         dto.setNumber(application.getNumber());
         BaseResponse responseFromInternal = malakaInternalClient.getCourseNameById(application.getCourseId());
@@ -335,6 +339,16 @@ public class StudentApplicationService {
         return dto;
     }
 
+    private String getFileUrl(String id, boolean isInternal) {
+        StringBuilder fileUrl = new StringBuilder(projectUrl);
+        if (isInternal) {
+            fileUrl.append("/api/application/").append(id).append("/file");
+        } else {
+            fileUrl.append("/api/external/application/").append(id).append("/file");
+        }
+        return fileUrl.toString();
+    }
+
     private String getFioFromPinpp(String pinpp) {
         Optional<InfoPinpp> byPinpp = infoPinppRespository.findByPinpp(pinpp);
         InfoPinpp infoPinpp = byPinpp.orElseGet(() -> {
@@ -355,4 +369,13 @@ public class StudentApplicationService {
         return infoPinpp.getLastName() +  " " + infoPinpp.getFirstName();
     }
 
+    public File getApplicationFile(String id) {
+        StudentApplication studentApplication = studentApplicationRepository.findById(id).orElseThrow(
+                () -> new NotFoundException("Student application not found with id: " + id));
+
+        if (studentApplication.getFile() == null) {
+            throw new NotFoundException("Student application has no file");
+        }
+        return studentApplication.getFile();
+    }
 }

@@ -6,6 +6,8 @@ import com.malaka.aat.internal.clients.MalakaExternalClient;
 import com.malaka.aat.internal.dto.student_application.StudentApplicationUpdateDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -39,6 +41,14 @@ public class StudentApplicationService {
         } catch (Exception e) {
             log.error("Error updating applications from malaka-external: {}", e.getMessage(), e);
             throw new SystemException("Failed to fetch applications from external service");
+        }
+    }
+
+    public ResponseEntity<Resource> getApplicationFile(String id) {
+        try {
+            return malakaExternalClient.getApplicationFile(id);
+        } catch (Exception e) {
+            throw new SystemException("Error happened calling an internal service");
         }
     }
 }

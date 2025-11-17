@@ -4,7 +4,10 @@ import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.internal.dto.group.GroupCreateDto;
 import com.malaka.aat.internal.dto.student_application.StudentApplicationUpdateDto;
+import feign.Headers;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,7 +43,11 @@ public interface MalakaExternalClient {
     @PostMapping("/api/external/group")
     BaseResponse createGroup(@RequestBody GroupCreateDto dto);
 
+    @Headers("X-Internal-Request: account-service")
     @GetMapping("/api/external/group")
     ResponseWithPagination getGroupsWithPagination(@RequestParam(value = "page", defaultValue = "0") int page,
                                                    @RequestParam(value = "size", defaultValue = "10") int size);
+
+    @GetMapping("/api/external/application/{id}/file")
+    ResponseEntity<Resource> getApplicationFile(@PathVariable String id);
 }
