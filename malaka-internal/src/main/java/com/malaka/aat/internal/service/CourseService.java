@@ -497,4 +497,12 @@ public class CourseService {
             throw new NotFoundException("Course not found for topic id " + topicId);
         }
     }
+
+    public BaseResponse getCourseNameById(String id) {
+        Course course = courseRepository.findById(id).orElseThrow(() -> new NotFoundException("Course not found with id: " + id));
+        BaseResponse response = new BaseResponse();
+        response.setData(course.getName());
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
+    }
 }

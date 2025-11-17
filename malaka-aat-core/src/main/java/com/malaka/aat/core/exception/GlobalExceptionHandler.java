@@ -137,6 +137,16 @@ public class GlobalExceptionHandler {
         return response;
     }
 
+    @ExceptionHandler(EgovClientException.class)
+    public BaseResponse handleAccessDeniedException(EgovClientException e, HttpServletRequest request) {
+        BaseResponse response = new BaseResponse();
+        ErrorResponse errorResponse = buildErrResponse(request, HttpStatus.FORBIDDEN, e.getMessage());
+        response.setData(errorResponse);
+        ResponseUtil.setResponseStatus(response,  ResponseStatus.EGOV_ERROR);
+        response.setData(errorResponse);
+        return response;
+    }
+
 
 
     private ErrorResponse buildErrResponse(HttpServletRequest request, HttpStatus status,  String message) {
@@ -146,7 +156,6 @@ public class GlobalExceptionHandler {
         errorResponse.setMethod(request.getMethod());
         errorResponse.setStatus(status.toString());
         return errorResponse;
-        //return ResponseEntity.status(status).body(errorResponse);
     }
 
 

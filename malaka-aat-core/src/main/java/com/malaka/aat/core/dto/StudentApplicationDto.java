@@ -23,6 +23,7 @@ public class StudentApplicationDto {
     private Integer status;
     private String rejectionReason;
     private String fileId;
+    private String courseName;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdDate;
 

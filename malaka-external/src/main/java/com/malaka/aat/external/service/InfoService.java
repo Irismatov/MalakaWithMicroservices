@@ -2,6 +2,7 @@ package com.malaka.aat.external.service;
 
 import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseStatus;
+import com.malaka.aat.core.exception.custom.EgovClientException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.external.clients.EgovClient;
@@ -34,7 +35,7 @@ public class InfoService {
             info = egovClient.getInfo(request.getPinfl());
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new SystemException(e.getMessage());
+            throw new EgovClientException(e.getMessage());
         }
         saveInfoPinpp(info);
         PinflInfoDto dto = new PinflInfoDto(info);

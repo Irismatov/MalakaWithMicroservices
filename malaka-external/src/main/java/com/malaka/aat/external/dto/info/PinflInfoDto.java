@@ -18,10 +18,10 @@ public class PinflInfoDto {
         this.pinfl = first.getCurrentPinpp();
         StringBuilder fioStrBuilder = new StringBuilder();
         if (first.getLastNameOz() != null) {
-            fioStrBuilder.append(first.getFirstNameOz()).append(" ");
+            fioStrBuilder.append(first.getLastNameOz()).append(" ");
         }
         if (first.getFirstNameOz() != null) {
-            fioStrBuilder.append(first.getLastNameOz()).append(" ");
+            fioStrBuilder.append(first.getFirstNameOz()).append(" ");
         }
         if (first.getMiddleNameOz() != null) {
             fioStrBuilder.append(first.getMiddleNameOz()).append(" ");
@@ -29,4 +29,5 @@ public class PinflInfoDto {
 
         this.fio = fioStrBuilder.toString();
     }
+
 }

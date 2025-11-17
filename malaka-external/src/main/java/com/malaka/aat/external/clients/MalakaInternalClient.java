@@ -52,4 +52,6 @@ public interface MalakaInternalClient {
     @GetMapping("/api/courses")
     BaseResponse getCourses();
 
+    @GetMapping("/api/course/name/{id}")
+    BaseResponse getCourseNameById(@PathVariable String id);
 }

@@ -2,6 +2,7 @@ package com.malaka.aat.external.clients;
 
 import com.malaka.aat.core.exception.custom.BadRequestException;
 import com.malaka.aat.core.exception.custom.ClientException;
+import com.malaka.aat.core.exception.custom.EgovClientException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.external.clients.gcp.EgovGcpRequest;
 import com.malaka.aat.external.clients.gcp.EgovGcpResponse;
@@ -76,7 +77,7 @@ public class EgovClient {
             token = egovTokenClient.getToken();
         } catch (Exception e) {
             logger.error("Error occurred when getting token: {}", e.getMessage());
-            throw new SystemException(e.getMessage());
+            throw new EgovClientException(e.getMessage());
         }
 
         EgovGcpRequest egovGcpRequest = new EgovGcpRequest();

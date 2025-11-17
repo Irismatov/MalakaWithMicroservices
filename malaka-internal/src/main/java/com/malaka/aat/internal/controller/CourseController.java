@@ -109,4 +109,10 @@ public class CourseController {
        return courseService.getCourseByTopicId(topicId);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @GetMapping("/course/name/{id}")
+    public BaseResponse getCourseNameById(@PathVariable String id) {
+        return courseService.getCourseNameById(id);
+    }
+
 }

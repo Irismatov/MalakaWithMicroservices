@@ -3,6 +3,7 @@ package com.malaka.aat.external.service;
 
 import com.malaka.aat.core.dto.*;
 import com.malaka.aat.core.exception.custom.BadRequestException;
+import com.malaka.aat.core.exception.custom.EgovClientException;
 import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
@@ -270,7 +271,7 @@ public class StudentApplicationService {
         try {
             info = egovClient.getInfo(pinfl);
         } catch (Exception e) {
-            throw new SystemException(e.getMessage());
+            throw new EgovClientException(e.getMessage());
         }
 
         User user = userRepository.findByPinfl(pinfl).orElseGet(
@@ -299,6 +300,11 @@ public class StudentApplicationService {
         dto.setFileId(application.getFile() != null ? application.getFile().getId() : null);
         dto.setCreatedDate(application.getInstime());
         dto.setNumber(application.getNumber());
+        BaseResponse responseFromInternal = malakaInternalClient.getCourseNameById(application.getCourseId());
+        if (responseFromInternal.getResultCode() != 0) {
+            throw new SystemException("Error happened fetching course");
+        }
+        dto.setCourseName((String) responseFromInternal.getData());
         if (application.getStatus() == StudentApplicationStatus.REJECTED) {
             List<StudentApplicationStatusLog> history = application.getHistory();
             dto.setRejectionReason(history.get(history.size()-1).getDescription());
@@ -334,14 +340,19 @@ public class StudentApplicationService {
         InfoPinpp infoPinpp = byPinpp.orElseGet(() -> {
             InfoPinpp newPinpp = new InfoPinpp();
             newPinpp.setPinpp(pinpp);
-            EgovGcpResponse info = egovClient.getInfo(pinpp);
+            EgovGcpResponse info;
+            try {
+                info = egovClient.getInfo(pinpp);
+            } catch (Exception e) {
+                throw new EgovClientException(e.getMessage());
+            }
             EgovGcpResponse.EgovGcpResponseData egovGcpResponseData = info.getData().get(0);
             newPinpp.setFirstName(egovGcpResponseData.getFirstNameOz());
             newPinpp.setLastName(egovGcpResponseData.getLastNameOz());
             newPinpp.setMiddleName(egovGcpResponseData.getMiddleNameOz());
             return infoPinppRespository.save(newPinpp);
         });
-        return infoPinpp.getFirstName() +  " " + infoPinpp.getLastName();
+        return infoPinpp.getLastName() +  " " + infoPinpp.getFirstName();
     }
 
 }

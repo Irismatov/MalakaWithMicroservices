@@ -18,7 +18,8 @@ public enum ResponseStatus {
     BAD_REQUEST(9, "Berilgan ma'lumotlarda xatolik mavjud"),
     FORBIDDEN(10, "Ruxsat cheklangan"),
     JWT_ERROR(11, "JWT token bilan xatolik yuzaga keldi"),
-    CLIENT_ERROR(12, "Tashqi API bilan xatolik yuzaga keldi")
+    CLIENT_ERROR(12, "Tashqi API bilan xatolik yuzaga keldi"),
+    EGOV_ERROR(12, "Personallashtirish markazi tizimda xatolik sodir bo‘ldi")
     ;
 
 
