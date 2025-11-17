@@ -2,6 +2,7 @@ server:
   port: 8082
 
 app:
+  projectUrl: http://192.168.25.4
   file:
     path: C:/Users/j.irismatov/Desktop/MalakaFiles/external/images/
   security:

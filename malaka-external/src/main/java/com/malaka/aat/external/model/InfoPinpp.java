@@ -3,6 +3,7 @@ package com.malaka.aat.external.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.SQLUpdate;
 
@@ -11,7 +12,7 @@ import org.hibernate.annotations.SQLUpdate;
 @Getter
 @Setter
 @SQLRestriction("is_deleted=0")
-@SQLUpdate(sql = "UPDATE info_pinpp SET is_deleted=1 WHERE id = ?")
+@SQLDelete(sql = "UPDATE info_pinpp SET is_deleted=1 WHERE id = ?")
 public class InfoPinpp extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
