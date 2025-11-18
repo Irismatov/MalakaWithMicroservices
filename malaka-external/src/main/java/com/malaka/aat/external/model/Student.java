@@ -1,12 +1,10 @@
 package com.malaka.aat.external.model;
 
-import com.malaka.aat.external.enumerators.student.Gender;
 import com.malaka.aat.external.model.spr.StudentTypeSpr;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -29,14 +27,6 @@ public class Student extends BaseEntity {
     private StudentTypeSpr type;
     @Convert(converter = StringListConverter.class)
     private List<String> courseIds = new ArrayList<>();
-    @Column(name = "birth_date")
-    private LocalDate birthDate;
-    @Column(name = "nationality")
-    private String nationality;
-    private String email;
-    @Column(name = "gender")
-    @Enumerated(EnumType.ORDINAL)
-    private Gender gender;
 
     @Converter
     public static class StringListConverter implements AttributeConverter<List<String>, String> {

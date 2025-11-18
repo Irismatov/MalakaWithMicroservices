@@ -1,6 +1,7 @@
 package com.malaka.aat.external.model;
 
 
+import com.malaka.aat.external.enumerators.student.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -8,7 +9,9 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -41,6 +44,16 @@ public class User extends BaseEntity {
     private String pinfl;
     @Column(name = "phone", length = 20)
     private String phone;
+    @Column(name = "birth_date")
+    private LocalDate birthDate;
+    @Column(name = "nationality")
+    private String nationality;
+    private String email;
+    @Column(name = "gender")
+    @Enumerated(EnumType.ORDINAL)
+    private Gender gender;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "user", orphanRemoval = true)
+    private List<Passport> passports;
 
 
     @ManyToMany(fetch = FetchType.EAGER)

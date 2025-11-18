@@ -11,6 +11,7 @@ import com.malaka.aat.external.clients.MalakaInternalClient;
 import com.malaka.aat.external.dto.student_application.StudentApplicationCorporateCreateDto;
 import com.malaka.aat.external.dto.student_application.StudentApplicationIndividualCreateDto;
 import com.malaka.aat.external.dto.student_application.StudentApplicationUpdateDto;
+import com.malaka.aat.external.enumerators.student.Gender;
 import com.malaka.aat.external.enumerators.student_application.StudentApplicationStatus;
 import com.malaka.aat.external.enumerators.student_application.StudentApplicationType;
 import com.malaka.aat.external.model.*;
@@ -255,6 +256,7 @@ public class StudentApplicationService {
             Student student = studentRepository.findByUser(user).orElseGet(Student::new);
             student.setUser(user);
             student.setType(studentTypeSpr);
+            setUserDetailsFromEgov(individual.getPinfl(), user);
             if (!student.getCourseIds().contains(individual.getCourseId())) {
                 student.getCourseIds().add(individual.getCourseId());
             }
@@ -266,6 +268,7 @@ public class StudentApplicationService {
                         Student student = studentRepository.findByUser(user).orElseGet(Student::new);
                         student.setUser(user);
                         student.setType(studentTypeSpr);
+                        setUserDetailsFromEgov(pinfl, user);
                         if (!student.getCourseIds().contains(corporate.getCourseId())) {
                             student.getCourseIds().add(corporate.getCourseId());
                         }
@@ -275,8 +278,44 @@ public class StudentApplicationService {
         }
     }
 
-    private void setStudentDetailsFromEgov(String pinfl, Student student) {
+    private void setUserDetailsFromEgov(String pinfl, User user) {
+        try {
+            EgovGcpResponse info = egovClient.getInfo(pinfl);
+            List<EgovGcpResponse.EgovGcpResponseData> data = info.getData();
+            EgovGcpResponse.EgovGcpResponseData egovGcpResponseData = data.get(0);
+            user.setBirthDate(egovGcpResponseData.getBirthDate());
+            user.setNationality(egovGcpResponseData.getNationality());
 
+            switch (egovGcpResponseData.getSex()) {
+                case "1" -> {
+                    user.setGender(Gender.MALE);
+                }
+                case "2" -> {
+                    user.setGender(Gender.FEMALE);
+                }
+                default -> {
+                    user.setGender(Gender.OTHER);
+                }
+            }
+            String currentDocument = egovGcpResponseData.getCurrentDocument();
+            Optional<EgovGcpResponse.Document> documentOptional = egovGcpResponseData.getDocuments().stream().filter(e -> e.getDocument().equals(currentDocument)).findFirst();
+            if (documentOptional.isPresent()) {
+                EgovGcpResponse.Document document = documentOptional.get();
+                Passport passport = new Passport();
+                passport.setStatus(document.getStatus());
+                passport.setSerNumber(document.getDocument());
+                passport.setDocGivenPlace(document.getDocGivePlace());
+                passport.setGivenDate(document.getDateBegin());
+                passport.setExpiryDate(document.getDateEnd());
+                passport.setType(document.getType());
+                passport.setIsCurrent((short) 1);
+                user.getPassports().add(passport);
+                passport.setUser(user);
+            }
+
+        } catch (Exception e) {
+            throw new SystemException("Error happened setting student data from egov");
+        }
     }
 
     private User getOrCreateUserByPinfl(String pinfl) {
@@ -322,7 +361,7 @@ public class StudentApplicationService {
         dto.setCourseName((String) responseFromInternal.getData());
         if (application.getStatus() == StudentApplicationStatus.REJECTED) {
             List<StudentApplicationStatusLog> history = application.getHistory();
-            dto.setRejectionReason(history.get(history.size()-1).getDescription());
+            dto.setRejectionReason(history.get(history.size() - 1).getDescription());
         }
 
         // Determine type and set specific fields
@@ -330,7 +369,7 @@ public class StudentApplicationService {
             dto.setApplicationType(StudentApplicationType.INDIVIDUAL.getValue());
             String pinfl = individual.getPinfl();
             dto.setEmail(individual.getEmail());
-            StudentApplicationStudentInfo studentInfo =  new StudentApplicationStudentInfo();
+            StudentApplicationStudentInfo studentInfo = new StudentApplicationStudentInfo();
             studentInfo.setPinfl(pinfl);
             studentInfo.setFio(getFioFromPinpp(studentInfo.getPinfl()));
             dto.setStudent(studentInfo);
@@ -379,7 +418,7 @@ public class StudentApplicationService {
         });
         String firstName = "";
         String lastName = "";
-        String  middleName = "";
+        String middleName = "";
         if (infoPinpp.getFirstName() != null) {
             firstName = infoPinpp.getFirstName();
         }

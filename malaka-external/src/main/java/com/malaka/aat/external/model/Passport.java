@@ -1,6 +1,5 @@
 package com.malaka.aat.external.model;
 
-import com.malaka.aat.external.enumerators.student.PassportType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,6 +19,8 @@ public class Passport extends BaseEntity{
     @Column(name = "id", nullable = false, length = 50)
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
+    @Column(name = "ser_number", length = 50, nullable = false)
+    private String serNumber;
     @Temporal(TemporalType.DATE)
     @Column(name = "given_date")
     private LocalDate givenDate;
@@ -29,11 +30,14 @@ public class Passport extends BaseEntity{
     @Column(name = "status")
     private Integer status;
     @Column(name = "type")
-    @Enumerated(EnumType.ORDINAL)
-    private PassportType type;
+    private String type;
     @Column(name = "doc_given_place", length = 1000)
     private String docGivenPlace;
     @Column(name = "doc_given_place_id")
     private Long docGivenPlaceId;
-
+    @Column(name = "is_current", columnDefinition = " SMALLINT DEFAULT 0")
+    private Short isCurrent;
+    @ManyToOne(fetch = FetchType.LAZY,  cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    private User user;
 }
