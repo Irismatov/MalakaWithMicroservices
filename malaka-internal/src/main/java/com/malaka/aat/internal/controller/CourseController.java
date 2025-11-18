@@ -115,4 +115,13 @@ public class CourseController {
         return courseService.getCourseNameById(id);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'METHODIST')")
+    @PostMapping("/course/{id}/final-test")
+    public BaseResponse addFinalTest(
+            @PathVariable String id,
+
+    ) {
+        return courseService.addFinalTestForCourse(id);
+    }
+
 }

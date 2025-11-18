@@ -29,9 +29,9 @@ public class TestController {
         return testService.createTestFromWord(file);
     }
 
-    @PutMapping("/question/{questionId}")
-    public BaseResponse updateQuestion(@PathVariable String questionId, @ModelAttribute TestQuestionUpdateDto dto) {
-        return testService.updateQuestion(questionId, dto);
-    }
+//    @PutMapping("/question/{questionId}")
+//    public BaseResponse updateQuestion(@PathVariable String questionId, @ModelAttribute TestQuestionUpdateDto dto) {
+//        return testService.updateQuestion(questionId, dto);
+//    }
 
 }
