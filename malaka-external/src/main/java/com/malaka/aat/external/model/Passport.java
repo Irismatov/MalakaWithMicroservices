@@ -3,8 +3,8 @@ package com.malaka.aat.external.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-import org.hibernate.annotations.SQLUpdate;
 
 import java.time.LocalDate;
 
@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "passports")
 @SQLRestriction("is_deleted=0 ")
-@SQLUpdate(sql = "UPDATE passports SET is_deleted=1 WHERE id = ?")
+@SQLDelete(sql = "UPDATE passports SET is_deleted=1 WHERE id = ?")
 public class Passport extends BaseEntity{
     @Id
     @Column(name = "id", nullable = false, length = 50)

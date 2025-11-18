@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.SQLUpdate;
 
@@ -14,7 +15,7 @@ import org.hibernate.annotations.SQLUpdate;
 @Getter
 @Setter
 @SQLRestriction("is_deleted = 0")
-@SQLUpdate(sql = "UPDATE permission SET is_deleted = 1 WHERE id = ?")
+@SQLDelete(sql = "UPDATE permission SET is_deleted = 1 WHERE id = ?")
 public class Permission extends BaseEntity {
     @Id
     @Column(name = "id",  nullable = false)

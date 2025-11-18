@@ -4,6 +4,7 @@ package com.malaka.aat.external.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.SQLUpdate;
 
@@ -12,7 +13,7 @@ import org.hibernate.annotations.SQLUpdate;
 @Entity
 @Table(name = "news")
 @SQLRestriction("is_deleted=0 ")
-@SQLUpdate(sql = "UPDATE news SET is_deleted=1 WHERE id = ?")
+@SQLDelete(sql = "UPDATE news SET is_deleted=1 WHERE id = ?")
 public class News extends BaseEntity{
 
     @Id

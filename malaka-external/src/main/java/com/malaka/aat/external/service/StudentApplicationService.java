@@ -294,7 +294,7 @@ public class StudentApplicationService {
                     user.setGender(Gender.FEMALE);
                 }
                 default -> {
-                    user.setGender(Gender.OTHER);
+                    user.setGender(Gender.UNKNOWN);
                 }
             }
             String currentDocument = egovGcpResponseData.getCurrentDocument();
@@ -309,6 +309,7 @@ public class StudentApplicationService {
                 passport.setExpiryDate(document.getDateEnd());
                 passport.setType(document.getType());
                 passport.setIsCurrent((short) 1);
+                user.getPassports().forEach(e -> e.setIsDeleted((short) 1));
                 user.getPassports().add(passport);
                 passport.setUser(user);
             }

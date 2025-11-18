@@ -1,6 +1,5 @@
 package com.malaka.aat.external.dto.user;
 
-import com.malaka.aat.external.model.Student;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,10 +8,8 @@ import lombok.Setter;
 public class StudentListDto {
     private String id;
     private String fio;
-
-
-    public StudentListDto(Student student) {
-        this.id = student.getId();
-        this.fio = student.getUser().getFirstName() + " "  + student.getUser().getLastName();
-    }
+    private String pinfl;
+    private String phone;
+    private String email;
+    private Integer gender;
 }

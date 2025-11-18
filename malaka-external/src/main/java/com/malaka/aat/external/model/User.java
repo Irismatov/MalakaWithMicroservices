@@ -10,6 +10,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -52,8 +53,18 @@ public class User extends BaseEntity {
     @Column(name = "gender")
     @Enumerated(EnumType.ORDINAL)
     private Gender gender;
+    @Column(name = "workplace", length = 500)
+    private String workplace;
+    @Column(name = "workplace_department", length = 500)
+    private String workplaceDepartment;
+    @Column(name = "work_position", length = 500)
+    private String workPosition;
+    @Column(name = "license_number", length = 50)
+    private String licenseNumber;
+    @Column(name = "work_category", length = 50)
+    private String workCategory;
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "user", orphanRemoval = true)
-    private List<Passport> passports;
+    private List<Passport> passports = new ArrayList<>();
 
 
     @ManyToMany(fetch = FetchType.EAGER)

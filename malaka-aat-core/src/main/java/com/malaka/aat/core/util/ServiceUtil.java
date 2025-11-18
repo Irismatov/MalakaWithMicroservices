@@ -1,5 +1,8 @@
 package com.malaka.aat.core.util;
 
+import com.malaka.aat.core.dto.Pagination;
+import org.springframework.data.domain.Page;
+
 public class ServiceUtil {
 
     public static String convertToPublicUrl(String absolutePath, String baseUrl) {
@@ -26,6 +29,13 @@ public class ServiceUtil {
         }
 
         return baseUrl + "/uploads/images" + relativePath.toString();
+    }
+
+    public static void setPaginationValues(Page<?> page, Pagination pagination) {
+        pagination.setNumberOfElements(page.getTotalElements());
+        pagination.setTotalPages(page.getTotalPages());
+        pagination.setTotalPages(page.getTotalPages());
+        pagination.setCurrentPage(page.getPageable().getPageNumber());
     }
 
 }
