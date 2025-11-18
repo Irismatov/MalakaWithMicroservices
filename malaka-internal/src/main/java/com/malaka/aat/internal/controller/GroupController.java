@@ -24,7 +24,7 @@ public class GroupController {
     @PreAuthorize("hasAnyRole('METHODIST', 'ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/group")
     public ResponseWithPagination getCourses(@RequestParam(value = "page", defaultValue = "0")int page, @RequestParam(value = "size", defaultValue = "10") int size) {
-        return groupService.getCoursesWithPagination(page, size);
+        return groupService.getGroupsWithPagination(page, size);
     }
 
 }

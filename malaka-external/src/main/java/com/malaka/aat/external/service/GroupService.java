@@ -64,8 +64,8 @@ public class GroupService {
         Group group = new Group();
         group.setCourseId(courseId);
         group.setStudents(students);
-        group.setStartDate(dto.getStartDate());
-        group.setEndDate(dto.getEndDate());
+        group.setStartDate(dto.getStartDate().atStartOfDay());
+        group.setEndDate(dto.getEndDate().atTime(23,  59, 59, 999999999));
         group.setStatus(GroupStatus.CREATED);
         group.setName(dto.getName());
         group.setOrder(getOrderOfGroup(courseId));
@@ -94,8 +94,8 @@ public class GroupService {
         CourseDto courseDto = objectMapper.convertValue(courseById.getData(), CourseDto.class);
         groupDto.setCourseId(group.getCourseId());
         groupDto.setCourseName(courseDto.getName());
-        groupDto.setStartDate(group.getStartDate());
-        groupDto.setEndDate(group.getEndDate());
+        groupDto.setStartDate(group.getStartDate().toLocalDate());
+        groupDto.setEndDate(group.getEndDate().toLocalDate());
         groupDto.setStatus(group.getStatus().getValue());
         if (group.getName() != null) {
             groupDto.setName(group.getName());

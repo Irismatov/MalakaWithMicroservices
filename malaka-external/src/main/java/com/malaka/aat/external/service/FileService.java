@@ -1,6 +1,7 @@
 package com.malaka.aat.external.service;
 
 import com.malaka.aat.core.exception.custom.NotFoundException;
+import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.HashUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.Base64;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -30,6 +32,26 @@ public class FileService {
     private String serverPort;
 
     private final FileRepository repository;
+
+    public File saveBase64FileAsImageForUser(String pinfl, String base64) {
+        if (base64 == null) {
+            return null;
+        }
+
+        if (base64.contains(",")) {
+            base64 = base64.split(",")[1];
+        }
+        String userImageDirectory = "";
+        byte[] imageBytes = Base64.getDecoder().decode(base64);
+        java.io.File dir = new java.io.File(userImageDirectory);
+        if (!dir.exists() && !dir.mkdirs()) {
+            throw new SystemException("Could not create image directory: " + userImageDirectory);
+        }
+
+        String fileName = pinfl + ".png";
+        java.io.File file = new java.io.File(dir, fileName);
+return null;
+    }
 
     public File save (MultipartFile multipartFile) throws IOException {
 

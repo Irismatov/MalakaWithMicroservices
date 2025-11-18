@@ -17,6 +17,6 @@ public interface StudentRepository extends JpaRepository<Student, String> {
     Optional<Student> findByUser(User user);
 
     @Query(value = "from Student s where s.type.id = :typeId and " +
-            "(:search is null or s.user.firstName ilike '%' || :search || '%' or s.user.lastName ilike '%' || :search || '%')")
+            "(:search is null or s.user.firstName ilike concat('%', :search, '%') or s.user.lastName ilike concat('%', :search, '%') or s.user.middleName ilike concat('%', :search, '%') )")
     Page<Student> findAllByTypeAndSearch(Integer typeId, String search, Pageable pageable);
 }

@@ -23,7 +23,7 @@ public class GroupService {
         }
     }
 
-    public ResponseWithPagination getCoursesWithPagination(int page, int size) {
+    public ResponseWithPagination getGroupsWithPagination(int page, int size) {
         try {
             ResponseWithPagination groupsWithPagination = malakaExternalClient.getGroupsWithPagination(page, size);
             return groupsWithPagination;

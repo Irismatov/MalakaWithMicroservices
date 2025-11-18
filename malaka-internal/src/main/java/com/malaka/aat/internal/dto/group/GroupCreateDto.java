@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -14,11 +15,11 @@ import java.util.List;
 @Setter
 public class GroupCreateDto {
     @NotNull(message = "Start date must be provided")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime startDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate startDate;
     @NotNull(message = "End date must be provided")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime endDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate endDate;
     @NotEmpty(message = "Students must be provided")
     @NotNull(message = "Students must be provided")
     @Size(min = 1, max = 1000, message = "Students must be between 1 and 1000")
