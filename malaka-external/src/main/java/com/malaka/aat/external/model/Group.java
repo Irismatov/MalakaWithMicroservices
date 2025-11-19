@@ -15,7 +15,7 @@ import java.util.Set;
 @Table(name = "groups")
 @Entity
 @SQLRestriction("is_deleted = 0")
-@SQLDelete(sql = "UPDATE group SET is_deleted = 1 WHERE id = ?")
+@SQLDelete(sql = "UPDATE groups SET is_deleted = 1 WHERE id = ?")
 public class Group extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -25,5 +25,6 @@ public class StudentFioListDto {
         if (user.getMiddleName() != null) {
             fio.append(" ").append(user.getMiddleName());
         }
+        this.fio = fio.toString();
     }
 }

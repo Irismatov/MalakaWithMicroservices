@@ -13,7 +13,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public enum GroupStatus {
 
-    CREATED(0);
+    CREATED(0),
+    STARTED(1),
+    EXPIRED(2);
 
     private final int value;
 

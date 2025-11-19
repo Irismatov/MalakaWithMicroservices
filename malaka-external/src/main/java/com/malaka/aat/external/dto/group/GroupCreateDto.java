@@ -20,7 +20,6 @@ public class GroupCreateDto {
     @NotNull(message = "End date must be provided")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
-    @NotEmpty(message = "Students must be provided")
     @NotNull(message = "Students must be provided")
     @Size(min = 1, max = 1000, message = "Students must be between 1 and 1000")
     private List<String> students;

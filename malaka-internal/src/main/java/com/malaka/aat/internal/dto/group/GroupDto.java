@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -19,4 +20,12 @@ public class GroupDto {
     private String courseId;
     private String courseName;
     private Integer status;
+    private List<Student> students;
+
+    @Getter
+    @Setter
+    public static class Student {
+        private String id;
+        private String fio;
+    }
 }
