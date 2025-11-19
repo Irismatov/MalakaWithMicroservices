@@ -12,6 +12,7 @@ import com.malaka.aat.external.dto.course.external.CourseDto;
 import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
 import com.malaka.aat.external.dto.topic.TopicDto;
+import com.malaka.aat.external.enumerators.group.GroupStatus;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
 import com.malaka.aat.external.model.*;
 import com.malaka.aat.external.repository.GroupRepository;
@@ -177,6 +178,11 @@ public class StudentEnrollmentService {
 
         if (group.getStudents().stream().noneMatch(e -> e.getId().equals(student.getId()))) {
             throw new BadRequestException("Current user does not belong to this group");
+        }
+
+
+        if (group.getStatus() != GroupStatus.STARTED) {
+            throw new  BadRequestException("The course can't be started at this group state");
         }
 
         CourseDto courseDto;

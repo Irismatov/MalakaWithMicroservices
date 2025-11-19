@@ -13,6 +13,7 @@ import com.malaka.aat.external.dto.course.external.CourseDto;
 import com.malaka.aat.external.dto.course.external.StudentCourseDto;
 import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
 import com.malaka.aat.external.enumerators.course.CourseStateForStudent;
+import com.malaka.aat.external.enumerators.group.GroupStatus;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
 import com.malaka.aat.external.model.*;
 import com.malaka.aat.external.repository.GroupRepository;
@@ -25,7 +26,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -102,9 +105,6 @@ public class CourseService {
         Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new SystemException("Student not found "));
         List<Group> groups = groupRepository.findByStudentsContains(student);
         groups.forEach(group -> {
-            Optional<StudentEnrollment> byStudentAndCourseId =
-                    studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, courseDto.getId(), group);
-
             StudentCourseDto studentCourseDto = new StudentCourseDto();
             studentCourseDto.setId(courseDto.getId());
             studentCourseDto.setName(courseDto.getName());
@@ -114,15 +114,22 @@ public class CourseService {
             studentCourseDto.setModuleCount(courseDto.getModuleCount());
             studentCourseDto.setDescription(courseDto.getDescription());
             studentCourseDto.setGroupId(group.getId());
+            studentCourseDto.setGroupName(group.getOrder() + "-guruh");
+            studentCourseDto.setStartDate(group.getStartDate().toLocalDate());
+            studentCourseDto.setEndDate(group.getEndDate().toLocalDate());
+            studentCourseDto.setGroupStatus(group.getStatus().getValue());
 
-            if (byStudentAndCourseId.isEmpty()) {
-                studentCourseDto.setStatus(CourseStateForStudent.NEW.getValue());
-            } else if (byStudentAndCourseId.get().getStatus() == StudentEnrollmentStatus.STARTED) {
-                studentCourseDto.setStatus(CourseStateForStudent.ENROLLING.getValue());
-            } else if (byStudentAndCourseId.get().getStatus() == StudentEnrollmentStatus.FINISHED) {
-                studentCourseDto.setStatus(CourseStateForStudent.FINISHED.getValue());
-            } else if (byStudentAndCourseId.get().getStatus() == StudentEnrollmentStatus.EXPIRED) {
-                studentCourseDto.setStatus(CourseStateForStudent.EXPIRED.getValue());
+            Optional<StudentEnrollment> enrollmentOptional = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, courseDto.getId(), group);
+            if (enrollmentOptional.isPresent()) {
+                studentCourseDto.setIsStarted(1);
+                StudentEnrollment enrollment = enrollmentOptional.get();
+                if (enrollment.getStatus() == StudentEnrollmentStatus.FINISHED) {
+                    studentCourseDto.setIsFinished(1);
+                }
+            }
+
+            if (group.getStatus() == GroupStatus.EXPIRED) {
+                studentCourseDto.setIsExpired(1);
             }
 
             studentCourseDtos.add(studentCourseDto);
@@ -139,6 +146,7 @@ public class CourseService {
         if (!group.getStudents().contains(student)) {
             throw new BadRequestException("The user does not belong to this group");
         }
+
         BaseResponse course = malakaInternalClient.getCourseById(group.getCourseId());
         CourseDto courseDto = objectMapper.convertValue(course.getData(), CourseDto.class);
         StudentEnrollment studentEnrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, courseDto.getId(), group)
