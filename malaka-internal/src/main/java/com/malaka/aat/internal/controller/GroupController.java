@@ -3,9 +3,11 @@ package com.malaka.aat.internal.controller;
 import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.internal.dto.group.GroupCreateDto;
+import com.malaka.aat.internal.dto.group.GroupUpdateDto;
 import com.malaka.aat.internal.service.GroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -17,7 +19,7 @@ public class GroupController {
 
     @PreAuthorize("hasAnyRole('METHODIST', 'ADMIN', 'SUPER_ADMIN')")
     @PostMapping("/group")
-    public BaseResponse createGroup(@RequestBody GroupCreateDto dto) {
+    public BaseResponse createGroup(@RequestBody @Validated GroupCreateDto dto) {
         return groupService.save(dto);
     }
 
@@ -25,6 +27,18 @@ public class GroupController {
     @GetMapping("/group")
     public ResponseWithPagination getCourses(@RequestParam(value = "page", defaultValue = "0")int page, @RequestParam(value = "size", defaultValue = "10") int size) {
         return groupService.getGroupsWithPagination(page, size);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PutMapping("/group/{id}")
+    public BaseResponse updateGroup(@PathVariable String id, @RequestBody @Validated GroupUpdateDto dto) {
+        return groupService.updateGroup(id, dto);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @DeleteMapping("/group/{id}")
+    public BaseResponse deleteGroup(@PathVariable String id) {
+        return groupService.deleteGroup(id);
     }
 
 }

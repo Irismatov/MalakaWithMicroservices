@@ -3,6 +3,7 @@ package com.malaka.aat.internal.clients;
 import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.internal.dto.group.GroupCreateDto;
+import com.malaka.aat.internal.dto.group.GroupUpdateDto;
 import com.malaka.aat.internal.dto.student_application.StudentApplicationUpdateDto;
 import feign.Headers;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -51,4 +52,10 @@ public interface MalakaExternalClient {
 
     @GetMapping("/api/external/application/{id}/file")
     ResponseEntity<Resource> getApplicationFile(@PathVariable String id);
+
+    @PutMapping("/api/external/group/{id}")
+    BaseResponse updateGroup(@PathVariable String id, @RequestBody GroupUpdateDto dto);
+
+    @DeleteMapping("/api/external/group/{id}")
+    BaseResponse deleteGroup(String id);
 }

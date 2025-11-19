@@ -35,10 +35,10 @@ public class GroupController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @PutMapping("/group/{id}")
-    public BaseResponse updateGroup(@PathVariable String id, @RequestBody GroupUpdateDto dto) {
+    public BaseResponse updateGroup(@PathVariable String id, @RequestBody @Validated GroupUpdateDto dto) {
         return groupService.updateGroup(id, dto);
     }
-
+    . .
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @DeleteMapping("/group/{id}")
     public BaseResponse deleteGroup(@PathVariable String id) {
