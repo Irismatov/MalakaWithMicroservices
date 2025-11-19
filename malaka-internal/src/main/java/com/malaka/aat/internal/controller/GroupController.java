@@ -29,13 +29,13 @@ public class GroupController {
         return groupService.getGroupsWithPagination(page, size);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('METHODIST', 'ADMIN', 'SUPER_ADMIN')")
     @PutMapping("/group/{id}")
     public BaseResponse updateGroup(@PathVariable String id, @RequestBody @Validated GroupUpdateDto dto) {
         return groupService.updateGroup(id, dto);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('METHODIST', 'ADMIN', 'SUPER_ADMIN')")
     @DeleteMapping("/group/{id}")
     public BaseResponse deleteGroup(@PathVariable String id) {
         return groupService.deleteGroup(id);

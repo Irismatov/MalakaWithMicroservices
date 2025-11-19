@@ -57,5 +57,5 @@ public interface MalakaExternalClient {
     BaseResponse updateGroup(@PathVariable String id, @RequestBody GroupUpdateDto dto);
 
     @DeleteMapping("/api/external/group/{id}")
-    BaseResponse deleteGroup(String id);
+    BaseResponse deleteGroup(@PathVariable String id);
 }
