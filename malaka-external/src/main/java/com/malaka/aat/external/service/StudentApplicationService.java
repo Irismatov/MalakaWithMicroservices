@@ -286,6 +286,8 @@ public class StudentApplicationService {
             user.setBirthDate(egovGcpResponseData.getBirthDate());
             user.setNationality(egovGcpResponseData.getNationality());
 
+            fileService.saveBase64FileAsImageForUser(pinfl, egovGcpResponseData.getPhoto());
+
             switch (egovGcpResponseData.getSex()) {
                 case "1" -> {
                     user.setGender(Gender.MALE);

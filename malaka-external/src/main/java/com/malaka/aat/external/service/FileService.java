@@ -4,6 +4,7 @@ import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.HashUtil;
 import lombok.RequiredArgsConstructor;
+import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.malaka.aat.external.model.File;
 import com.malaka.aat.external.repository.FileRepository;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -50,7 +52,17 @@ public class FileService {
 
         String fileName = pinfl + ".png";
         java.io.File file = new java.io.File(dir, fileName);
-return null;
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            fos.write(imageBytes);
+            File newFile = new File();
+            newFile.setOriginalName(fileName);
+            newFile.setContentType(ContentType.IMAGE_PNG.toString());
+            newFile.setPath(filePath);
+            newFile.setExtension(".png");
+            return newFile;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public File save (MultipartFile multipartFile) throws IOException {

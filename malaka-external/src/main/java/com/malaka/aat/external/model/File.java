@@ -22,7 +22,7 @@ public class File extends BaseEntity {
     private String originalName;
     @Column(name = "path", nullable = false, length = 1000)
     private String path;
-    @Column(name = "hash", nullable = false, length = 255)
+    @Column(name = "hash", length = 255)
     private String hash;
     @Column(name = "extension", nullable = false, length = 50)
     private String extension;

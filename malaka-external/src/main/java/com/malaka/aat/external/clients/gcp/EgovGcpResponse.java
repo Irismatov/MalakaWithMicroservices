@@ -73,6 +73,8 @@ public class EgovGcpResponse {
         private String citizenshipId;
         @JsonProperty("sex")
         private String sex;
+        @JsonProperty("photo")
+        private String photo;
     }
 
     @ToString
