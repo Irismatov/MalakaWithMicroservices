@@ -13,4 +13,8 @@ public class TopicDto {
     private String moduleId;
     private String moduleName;
     private Integer order;
+    private String contentFileId;
+    private String lectureFileId;
+    private String presentationFileId;
+    private String testId;
 }

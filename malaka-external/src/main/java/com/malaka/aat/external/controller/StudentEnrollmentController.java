@@ -17,5 +17,9 @@ public class StudentEnrollmentController {
         return studentEnrollmentService.updateOrCreateStudentEnrollment(groupId);
     }
 
+    @PostMapping("/enrollment/group/{groupId}/startCourse")
+    public BaseResponse startCourse(@PathVariable String groupId) {
+        return studentEnrollmentService.startCourse(groupId);
+    }
 
 }

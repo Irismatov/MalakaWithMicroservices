@@ -11,6 +11,7 @@ import com.malaka.aat.external.clients.MalakaInternalClient;
 import com.malaka.aat.external.dto.course.external.CourseDto;
 import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
+import com.malaka.aat.external.dto.topic.TopicDto;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
 import com.malaka.aat.external.model.*;
 import com.malaka.aat.external.repository.GroupRepository;
@@ -161,5 +162,69 @@ public class StudentEnrollmentService {
         newStudentEnrollmentDetail.setIsActive((short) 1);
         StudentEnrollmentDetail save = studentEnrollmentDetailRepository.save(newStudentEnrollmentDetail);
         return save;
+    }
+
+    @Transactional
+    public BaseResponse startCourse(String groupId) {
+
+        //validations
+        User currentUser = sessionService.getCurrentUser();
+        Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new BadRequestException("Current user is not a student"));
+
+        Group group = groupRepository.findById(groupId).orElseThrow(
+                () -> new NotFoundException("Group not found with id " + groupId)
+        );
+
+        if (group.getStudents().stream().noneMatch(e -> e.getId().equals(student.getId()))) {
+            throw new BadRequestException("Current user does not belong to this group");
+        }
+
+        CourseDto courseDto;
+        try {
+            BaseResponse responseFromInternalService = malakaInternalClient.getCourseById(group.getCourseId());
+            if (responseFromInternalService.getResultCode() != 0) {
+                return responseFromInternalService;
+            }
+            courseDto = objectMapper.convertValue(responseFromInternalService.getData(), CourseDto.class);
+        } catch (Exception e) {
+            throw new SystemException("Error occurred calling an internal service");
+        }
+
+        Optional<StudentEnrollment> oldEnrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, group.getCourseId(), group);
+        if (oldEnrollment.isPresent()) {
+            throw new BadRequestException("Course has already been started");
+        }
+
+        // main logic
+        StudentEnrollment enrollment = new StudentEnrollment();
+        enrollment.setStudent(student);
+        enrollment.setCourseId(group.getCourseId());
+        enrollment.setGroup(group);
+        enrollment.setStatus(StudentEnrollmentStatus.STARTED);
+        enrollment = studentEnrollmentRepository.save(enrollment);
+
+
+        // find first topic && first content
+        ModuleDto firstModule = courseDto.getModules().stream()
+                .filter(e -> e.getOrder() == 1).findFirst()
+                .orElseThrow(() -> new SystemException("Course module not found at order 1"));
+        TopicDto firstTopic = firstModule.getTopics().stream()
+                .filter(e -> e.getOrder() == 1).findFirst()
+                .orElseThrow(() -> new SystemException("Module topic not found at order 1"));
+
+
+
+        StudentEnrollmentDetail detail = new  StudentEnrollmentDetail();
+        detail.setStudentEnrollment(enrollment);
+        detail.setModuleId(firstModule.getId());
+        detail.setTopicId(firstTopic.getId());
+        detail.setContentId(firstTopic.getContentFileId());
+        studentEnrollmentDetailRepository.save(detail);
+
+
+        // response
+        BaseResponse response = new BaseResponse();
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
     }
 }

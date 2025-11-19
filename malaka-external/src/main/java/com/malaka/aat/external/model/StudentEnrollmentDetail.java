@@ -20,12 +20,21 @@ public class StudentEnrollmentDetail extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_enrollment_id", nullable = false)
     private StudentEnrollment studentEnrollment;
-    @Column(name = "module_step", columnDefinition = " INTEGER DEFAULT 1", nullable = false)
+    @Column(name = "module_id", length = 50)
+    private String moduleId;
+    @Column(name = "topic_id", length = 50)
+    private String topicId;
+    @Column(name = "content_id", length = 50)
+    private String contentId;
+
+
+
+    @Column(name = "module_step", columnDefinition = " INTEGER DEFAULT 1")
     private Integer moduleStep;
-    @Column(name = "topic_step", columnDefinition = " INTEGER DEFAULT 1", nullable = false)
+    @Column(name = "topic_step", columnDefinition = " INTEGER DEFAULT 1")
     private Integer topicStep;
-    @Column(name = "content_step", columnDefinition = "INTEGER DEFAULT 1", nullable = false)
+    @Column(name = "content_step", columnDefinition = "INTEGER DEFAULT 1")
     private Integer contentStep;
-    @Column(name = "is_active", nullable = false, columnDefinition = " SMALLINT DEFAULT 1")
+    @Column(name = "is_active", columnDefinition = " SMALLINT DEFAULT 1")
     private Short isActive;
 }

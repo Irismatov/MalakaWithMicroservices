@@ -22,6 +22,10 @@ public class TopicDto {
     private String lectureFileUrl;
     private String presentationFileUrl;
     private TestDto testDto;
+    private String contentFileId;
+    private String lectureFileId;
+    private String presentationFileId;
+    private String testId;
 
     public TopicDto(Topic topic) {
         this.id = topic.getId();
@@ -39,18 +43,22 @@ public class TopicDto {
 
         if (topic.getContentFile() != null) {
             setUrlForContentFile(topic);
+            this.contentFileId = topic.getContentFile().getId();
         }
 
         if (topic.getLectureFile() != null) {
             this.lectureFileUrl = ServiceUtil.getProjectBaseUrl() + "/api/topic/" + this.id + "/lecture";
+            this.lectureFileId = topic.getLectureFile().getId();
         }
 
         if (topic.getPresentationFile() != null) {
             this.presentationFileUrl = ServiceUtil.getProjectBaseUrl() + "/api/topic/" + this.id + "/presentation";
+            this.presentationFileId = topic.getPresentationFile().getId();
         }
 
         if (topic.getTest() != null) {
             this.testDto = new TestDto(topic.getTest());
+            this.testId = topic.getTest().getId();
         }
     }
 
