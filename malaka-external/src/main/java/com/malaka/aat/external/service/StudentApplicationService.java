@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.time.Year;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -364,6 +365,7 @@ public class StudentApplicationService {
         dto.setCourseName((String) responseFromInternal.getData());
         if (application.getStatus() == StudentApplicationStatus.REJECTED) {
             List<StudentApplicationStatusLog> history = application.getHistory();
+            history.sort(Comparator.comparing(StudentApplicationStatusLog::getInstime));
             dto.setRejectionReason(history.get(history.size() - 1).getDescription());
         }
 
