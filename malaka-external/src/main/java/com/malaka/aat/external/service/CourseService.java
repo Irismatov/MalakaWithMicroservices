@@ -149,10 +149,13 @@ public class CourseService {
 
         BaseResponse course = malakaInternalClient.getCourseById(group.getCourseId());
         CourseDto courseDto = objectMapper.convertValue(course.getData(), CourseDto.class);
-        StudentEnrollment studentEnrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, courseDto.getId(), group)
+        StudentEnrollment enrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, courseDto.getId(), group)
                 .orElseThrow(() -> new NotFoundException("Enrollment not found for the user"));
-        StudentEnrollmentDetail studentEnrollmentDetail = studentEnrollmentDetailRepository.findLastByStudentEnrollment(studentEnrollment).orElseThrow(() -> new SystemException("Student enrollment detail not found"));
-        courseDto.setStudentEnrollment(new StudentEnrollmentDetailDto(studentEnrollmentDetail));
+        List<StudentEnrollmentDetail> enrollmentDetails = enrollment.getStudentEnrollmentDetails();
+        convertCourseDtoToStudentCourse(courseDto);
+
+
+
         response.setData(courseDto);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;

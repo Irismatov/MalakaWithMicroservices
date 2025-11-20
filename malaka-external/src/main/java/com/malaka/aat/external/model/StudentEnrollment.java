@@ -8,6 +8,8 @@ import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
@@ -30,4 +32,6 @@ public class StudentEnrollment extends BaseEntity {
     private Group group;
     @Column(name = "course_id", nullable = false)
     private String courseId;
+    @OneToMany(mappedBy = "studentEnrollment")
+    private List<StudentEnrollmentDetail> studentEnrollmentDetails;
 }

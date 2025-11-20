@@ -75,12 +75,27 @@ public class NewsService {
         News news = newsRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("News not found with id: " + id)
         );
-        if (dto.getTitle() != null) {
-
+        if (dto.getTitle() != null && !dto.getTitle().equals(news.getTitle())) {
+            news.setTitle(dto.getTitle());
         }
 
+        if (dto.getText() != null && !dto.getText().equals(news.getText())) {
+            news.setText(dto.getText());
+        }
 
+        if (dto.getImage() != null) {
+            try {
+                fileService.save(dto.getImage());
+            } catch (IOException e) {
+                throw new SystemException("Error happened while saving image");
+            }
+        }
+
+        News saved = newsRepository.save(news);
+        NewsListItemDto newsListItemDto = convertEntityToListItemDto(saved);
         ResponseWithPagination response = new ResponseWithPagination();
+        response.setData(newsListItemDto);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
     }
 
