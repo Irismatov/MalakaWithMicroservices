@@ -13,6 +13,7 @@ import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
 import com.malaka.aat.external.dto.topic.TopicDto;
 import com.malaka.aat.external.enumerators.group.GroupStatus;
+import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentDetailType;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
 import com.malaka.aat.external.model.*;
 import com.malaka.aat.external.repository.GroupRepository;
@@ -23,6 +24,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -211,26 +214,110 @@ public class StudentEnrollmentService {
 
 
         // find first topic && first content
-        ModuleDto firstModule = courseDto.getModules().stream()
-                .filter(e -> e.getOrder() == 1).findFirst()
-                .orElseThrow(() -> new SystemException("Course module not found at order 1"));
-        TopicDto firstTopic = firstModule.getTopics().stream()
-                .filter(e -> e.getOrder() == 1).findFirst()
-                .orElseThrow(() -> new SystemException("Module topic not found at order 1"));
-
-
-
-        StudentEnrollmentDetail detail = new  StudentEnrollmentDetail();
-        detail.setStudentEnrollment(enrollment);
-        detail.setModuleId(firstModule.getId());
-        detail.setTopicId(firstTopic.getId());
-        detail.setContentId(firstTopic.getContentFileId());
-        studentEnrollmentDetailRepository.save(detail);
+//        ModuleDto firstModule = courseDto.getModules().stream()
+//                .filter(e -> e.getOrder() == 1).findFirst()
+//                .orElseThrow(() -> new SystemException("Course module not found at order 1"));
+//        TopicDto firstTopic = firstModule.getTopics().stream()
+//                .filter(e -> e.getOrder() == 1).findFirst()
+//                .orElseThrow(() -> new SystemException("Module topic not found at order 1"));
+//
+//
+//
+//        StudentEnrollmentDetail detail = new  StudentEnrollmentDetail();
+//        detail.setStudentEnrollment(enrollment);
+//        detail.setModuleId(firstModule.getId());
+//        detail.setTopicId(firstTopic.getId());
+//        detail.setContentId(firstTopic.getContentFileId());
+//        studentEnrollmentDetailRepository.save(detail);
 
 
         // response
         BaseResponse response = new BaseResponse();
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
+    }
+
+    public BaseResponse startTask(String groupId, String moduleId, String topicId, String contentId) {
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException("Group not found with id: " + groupId));
+
+        User currentUser = sessionService.getCurrentUser();
+
+        Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new BadRequestException("Current user is not a student"));
+        if (!group.getStudents().contains(student)) {
+            throw new BadRequestException("Current user does not belong to this group");
+        }
+
+        if (group.getStatus() != GroupStatus.STARTED) {
+            throw new BadRequestException("Task can't be started at this group state");
+        }
+
+        StudentEnrollment enrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, group.getCourseId(), group).orElseThrow(
+                () -> new BadRequestException("Course must have been started before starting a task")
+        );
+
+        BaseResponse internalResponse = malakaInternalClient.getCourseById(enrollment.getCourseId());
+        if (internalResponse.getResultCode() != 0) {
+            return internalResponse;
+        }
+        CourseDto courseDto = objectMapper.convertValue(internalResponse.getData(), CourseDto.class);
+        ModuleDto moduleDto = courseDto.getModules().stream().filter(e -> e.getId().equals(moduleId)).findFirst().orElseThrow(
+                () -> new NotFoundException("Module not found with id " + moduleId)
+        );
+
+        TopicDto topicDto = moduleDto.getTopics().stream().filter(e -> e.getId().equals(topicId)).findFirst().orElseThrow(
+                () -> new NotFoundException("Topic not found with id " + topicId)
+        );
+
+
+        boolean isEligible = isStudentEligibleToStart(enrollment, courseDto, contentId, topicDto, moduleDto);
+        if (!isEligible) {
+            throw new BadRequestException("Student is not eligible to start a task");
+        }
+
+        StudentEnrollmentDetail detail = new  StudentEnrollmentDetail();
+        detail.setModuleId(moduleId);
+        detail.setTopicId(topicId);
+        detail.setContentId(contentId);
+        detail.setStudentEnrollment(enrollment);
+        detail.setType(StudentEnrollmentDetailType.START);
+        studentEnrollmentDetailRepository.save(detail);
+
+        BaseResponse response = new BaseResponse();
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
+    }
+
+    private boolean isStudentEligibleToStart(StudentEnrollment enrollment, CourseDto courseDto, String contentId, TopicDto currentTopicDto, ModuleDto currentModuleDto) {
+        List<ModuleDto> modules = courseDto.getModules();
+        ModuleDto firstModule = modules.stream().filter(e -> e.getOrder() == 1).findFirst().orElseThrow();
+        TopicDto firstModuleFirstTopic = firstModule.getTopics().stream().filter(e -> e.getOrder() == 1).findFirst().orElseThrow();
+        if (firstModuleFirstTopic.getContentType() == 0 || firstModuleFirstTopic.getContentType() == 1) {
+            if (firstModuleFirstTopic.getContentFileId().equals(contentId)) {
+                return true;
+            }
+        } else {
+            if (firstModuleFirstTopic.getLectureFileId().equals(contentId)) {
+                return true;
+            }
+        }
+
+        List<String> contentIds = studentEnrollmentDetailRepository.
+                findContentIdsByStudentEnrollmentAndType(enrollment, StudentEnrollmentDetailType.FINISH);
+
+        if (currentTopicDto.getContentFileId() != null && currentTopicDto.getContentFileId().equals(contentId)) {
+            ModuleDto moduleDto = courseDto.getModules().stream().filter(e -> e.getOrder() == currentModuleDto.getOrder() - 1).findFirst().orElseThrow();
+            TopicDto topicDto = moduleDto.getTopics().stream().filter(e -> Objects.equals(e.getOrder(), moduleDto.getTopicCount())).findFirst().orElseThrow();
+            if (contentIds.contains(topicDto.getContentFileId())) {
+                return true;
+            }
+        } else if (currentTopicDto.getLectureFileId().equals(contentId) && contentIds.contains(currentTopicDto.getContentFileId())) {
+            return true;
+        } else if (currentTopicDto.getPresentationFileId().equals(contentId) && contentIds.contains(currentTopicDto.getLectureFileId())) {
+            return true;
+        } else if (currentTopicDto.getTestId().equals(contentId) && contentIds.contains(currentTopicDto.getPresentationFileId())) {
+            return true;
+        }
+
+        return false;
     }
 }

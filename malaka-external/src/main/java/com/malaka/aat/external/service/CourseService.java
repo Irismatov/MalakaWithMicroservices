@@ -12,11 +12,10 @@ import com.malaka.aat.external.clients.MalakaInternalClient;
 import com.malaka.aat.external.dto.course.external.CourseDto;
 import com.malaka.aat.external.dto.course.external.StudentCourseDetailDto;
 import com.malaka.aat.external.dto.course.external.StudentCourseDto;
-import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
 import com.malaka.aat.external.dto.topic.TopicDto;
-import com.malaka.aat.external.enumerators.course.CourseStateForStudent;
 import com.malaka.aat.external.enumerators.group.GroupStatus;
+import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentDetailType;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
 import com.malaka.aat.external.model.*;
 import com.malaka.aat.external.repository.*;
@@ -26,9 +25,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -187,18 +184,28 @@ public class CourseService {
             dto.setIsExpired(1);
         }
 
-        List<String> moduleIds;
-        List<String> topicIds;
-        List<String> contentIds;
+        List<String> moduleFinishIds;
+        List<String> topicFinishIds;
+        List<String> contentFinishIds;
+        List<String> moduleStartIds;
+        List<String> topicStartIds;
+        List<String> contentStartIds;
         if (enrollmentOptional.isPresent()) {
             StudentEnrollment enrollment = enrollmentOptional.get();
-            moduleIds = studentEnrollmentDetailRepository.findModuleIdsByStudentEnrollment(enrollment);
-            topicIds = studentEnrollmentDetailRepository.findTopicIdsByStudentEnrollment(enrollment);
-            contentIds = studentEnrollmentDetailRepository.findContentIdsByStudentEnrollment(enrollment);
+            moduleFinishIds = studentEnrollmentDetailRepository.findModuleIdsByStudentEnrollment(enrollment, StudentEnrollmentDetailType.FINISH);
+            topicFinishIds = studentEnrollmentDetailRepository.findTopicIdsByStudentEnrollment(enrollment, StudentEnrollmentDetailType.FINISH);
+            contentFinishIds = studentEnrollmentDetailRepository.findContentIdsByStudentEnrollmentAndType(enrollment, StudentEnrollmentDetailType.FINISH);
+
+            moduleStartIds = studentEnrollmentDetailRepository.findModuleIdsByStudentEnrollment(enrollment, StudentEnrollmentDetailType.START);
+            topicStartIds = studentEnrollmentDetailRepository.findTopicIdsByStudentEnrollment(enrollment, StudentEnrollmentDetailType.START);
+            contentStartIds = studentEnrollmentDetailRepository.findContentIdsByStudentEnrollmentAndType(enrollment, StudentEnrollmentDetailType.START);
         } else {
-            moduleIds = new ArrayList<>();
-            topicIds = new ArrayList<>();
-            contentIds = new ArrayList<>();
+            moduleFinishIds = new ArrayList<>();
+            topicFinishIds = new ArrayList<>();
+            contentFinishIds = new ArrayList<>();
+            moduleStartIds = new ArrayList<>();
+            topicStartIds = new ArrayList<>();
+            contentStartIds = new ArrayList<>();
         }
 
         List<ModuleDto> modules = courseDto.getModules();
@@ -210,6 +217,9 @@ public class CourseService {
                     moduleDto.setTopicCount(e.getTopicCount());
                     moduleDto.setOrder(e.getOrder());
                     moduleDto.setTeacherName(e.getTeacherName());
+                    if (moduleStartIds.contains(e.getId())) {
+                        moduleDto.setIsStarted(1);
+                    }
 
                     List<TopicDto> topics = e.getTopics();
                     List<StudentCourseDetailDto.Topic>  topicDtos = new ArrayList<>();
@@ -220,17 +230,25 @@ public class CourseService {
                         topicDto.setOrder(t.getOrder());
                         List<StudentCourseDetailDto.TopicContent> topicContents = new  ArrayList<>();
                         StudentCourseDetailDto.TopicMainContent topicMainContent;
+
+                        if (topicStartIds.contains(t.getId())) {
+                            topicDto.setIsStarted(1);
+                        }
+
                         if (t.getContentType() == 2 || t.getContentType() == 3) {
                             topicMainContent = new StudentCourseDetailDto.TopicMainContent();
                         } else {
                             StudentCourseDetailDto.TopicMainContentVideAudio topicMainContentAudioVideo = new StudentCourseDetailDto.TopicMainContentVideAudio();
                             topicMainContentAudioVideo.setId(t.getContentFileId());
                             topicMainContentAudioVideo.setUrl("url should be set");
+                            topicMainContentAudioVideo.setDuration(9999);
                             topicMainContent = topicMainContentAudioVideo;
-                            // add minutes
                         }
-                        if (contentIds.contains(t.getContentFileId())) {
+                        if (contentFinishIds.contains(t.getContentFileId())) {
                             topicMainContent.setIsFinished(1);
+                        }
+                        if (contentStartIds.contains(t.getContentFileId())) {
+                            topicMainContent.setIsStarted(1);
                         }
                         topicMainContent.setContentType(t.getContentType());
                         topicMainContent.setType(StudentCourseDetailDto.MAIN_CONTENT);
@@ -238,16 +256,22 @@ public class CourseService {
                         StudentCourseDetailDto.TopicLectureOrPresentationContent topicLecture = new StudentCourseDetailDto.TopicLectureOrPresentationContent();
                         topicLecture.setId(t.getLectureFileId());
                         topicLecture.setUrl("url should be set");
-                        if (contentIds.contains(t.getLectureFileId())) {
+                        if (contentFinishIds.contains(t.getLectureFileId())) {
                             topicLecture.setIsFinished(1);
+                        }
+                        if (contentStartIds.contains(t.getLectureFileId())) {
+                            topicLecture.setIsStarted(1);
                         }
                         topicLecture.setType(StudentCourseDetailDto.LECTURE);
                         topicContents.add(topicLecture);
                         StudentCourseDetailDto.TopicLectureOrPresentationContent topicPresentation = new StudentCourseDetailDto.TopicLectureOrPresentationContent();
                         topicPresentation.setId(t.getLectureFileId());
                         topicPresentation.setUrl("url should be set");
-                        if (contentIds.contains(t.getPresentationFileId())) {
+                        if (contentFinishIds.contains(t.getPresentationFileId())) {
                             topicLecture.setIsFinished(1);
+                        }
+                        if (contentStartIds.contains(t.getPresentationFileId())) {
+                            topicPresentation.setIsStarted(1);
                         }
                         topicPresentation.setType(StudentCourseDetailDto.PRESENTATION);
                         topicContents.add(topicPresentation);
@@ -259,6 +283,7 @@ public class CourseService {
                                 .findByStudentAndGroupAndTestId(student, group, t.getTestId());
                         if (!studentAttempts.isEmpty()) {
                             topicTest.setIsAttempted(1);
+                            topicTest.setIsStarted(1);
                             if (studentAttempts.stream().filter(sa -> sa.getIsSuccess() == 1).findFirst().isPresent()) {
                                 topicTest.setIsFinished(1);
                                 moduleDto.setIsFinished(1);

@@ -9,9 +9,9 @@ import java.util.List;
 @Setter
 public class StudentCourseDetailDto extends StudentCourseDto {
     public static Integer MAIN_CONTENT = 0;
-    public static Integer LECTURE = 0;
-    public static Integer PRESENTATION = 0;
-    public static Integer TEST = 0;
+    public static Integer LECTURE = 1;
+    public static Integer PRESENTATION = 2;
+    public static Integer TEST = 3;
 
 
     private List<Module> modules;
@@ -25,6 +25,7 @@ public class StudentCourseDetailDto extends StudentCourseDto {
         private Integer order;
         private String teacherName;
         private int isFinished;
+        private int isStarted;
         private List<Topic> topics;
     }
 
@@ -35,6 +36,7 @@ public class StudentCourseDetailDto extends StudentCourseDto {
         private String name;
         private Integer order;
         private int isFinished;
+        private int isStarted;
         private List<TopicContent> contents;
     }
 
@@ -43,6 +45,7 @@ public class StudentCourseDetailDto extends StudentCourseDto {
     public static class TopicContent {
         private String id;
         private int isFinished;
+        private int isStarted;
         private Integer type;
     }
 

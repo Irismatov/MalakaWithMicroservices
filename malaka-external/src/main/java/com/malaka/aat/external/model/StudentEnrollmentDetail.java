@@ -1,5 +1,6 @@
 package com.malaka.aat.external.model;
 
+import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentDetailType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,6 +27,9 @@ public class StudentEnrollmentDetail extends BaseEntity {
     private String topicId;
     @Column(name = "content_id", length = 50)
     private String contentId;
+    @Enumerated(EnumType.ORDINAL)
+    @Column(name = "type")
+    private StudentEnrollmentDetailType type;
 
 
 
