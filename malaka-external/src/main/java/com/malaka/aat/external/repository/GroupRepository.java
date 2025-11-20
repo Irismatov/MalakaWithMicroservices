@@ -38,4 +38,5 @@ public interface GroupRepository extends JpaRepository<Group, String> {
     void updateToExpired();
 
 
+    List<Group> findByStudentsContainsAndCourseId(Student student, String id);
 }

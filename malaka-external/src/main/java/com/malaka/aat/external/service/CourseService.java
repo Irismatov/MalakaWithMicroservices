@@ -10,16 +10,16 @@ import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.external.clients.MalakaInternalClient;
 import com.malaka.aat.external.dto.course.external.CourseDto;
+import com.malaka.aat.external.dto.course.external.StudentCourseDetailDto;
 import com.malaka.aat.external.dto.course.external.StudentCourseDto;
 import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
+import com.malaka.aat.external.dto.module.ModuleDto;
+import com.malaka.aat.external.dto.topic.TopicDto;
 import com.malaka.aat.external.enumerators.course.CourseStateForStudent;
 import com.malaka.aat.external.enumerators.group.GroupStatus;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
 import com.malaka.aat.external.model.*;
-import com.malaka.aat.external.repository.GroupRepository;
-import com.malaka.aat.external.repository.StudentEnrollmentDetailRepository;
-import com.malaka.aat.external.repository.StudentEnrollmentRepository;
-import com.malaka.aat.external.repository.StudentRepository;
+import com.malaka.aat.external.repository.*;
 import com.malaka.aat.external.util.ServiceUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -45,6 +45,7 @@ public class CourseService {
     private final ObjectMapper objectMapper;
     private final StudentEnrollmentRepository studentEnrollmentRepository;
     private final StudentEnrollmentDetailRepository studentEnrollmentDetailRepository;
+    private final StudentTestAttemptRepository studentTestAttemptRepository;
 
     public ResponseWithPagination getCoursesWithPagination(int page, int size) {
         ResponseWithPagination response = new ResponseWithPagination();
@@ -100,10 +101,9 @@ public class CourseService {
         List<StudentCourseDto> studentCourseDtos = new ArrayList<>();
 
 
-
         User currentUser = sessionService.getCurrentUser();
         Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new SystemException("Student not found "));
-        List<Group> groups = groupRepository.findByStudentsContains(student);
+        List<Group> groups = groupRepository.findByStudentsContainsAndCourseId(student, courseDto.getId());
         groups.forEach(group -> {
             StudentCourseDto studentCourseDto = new StudentCourseDto();
             studentCourseDto.setId(courseDto.getId());
@@ -149,17 +149,112 @@ public class CourseService {
 
         BaseResponse course = malakaInternalClient.getCourseById(group.getCourseId());
         CourseDto courseDto = objectMapper.convertValue(course.getData(), CourseDto.class);
-        StudentEnrollment enrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, courseDto.getId(), group)
-                .orElseThrow(() -> new NotFoundException("Enrollment not found for the user"));
-        List<StudentEnrollmentDetail> enrollmentDetails = enrollment.getStudentEnrollmentDetails();
-        convertCourseDtoToStudentCourse(courseDto);
 
 
-
-        response.setData(courseDto);
+        StudentCourseDetailDto studentCourseDetailDto = convertCourseDtoToStudentCourseDetail(student, group, courseDto);
+        response.setData(studentCourseDetailDto);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
     }
+
+    private StudentCourseDetailDto convertCourseDtoToStudentCourseDetail(Student student, Group group, CourseDto courseDto) {
+        StudentCourseDetailDto dto = new StudentCourseDetailDto();
+        dto.setId(courseDto.getId());
+        dto.setName(courseDto.getName());
+        dto.setDescription(courseDto.getDescription());
+        dto.setImgUrl(courseDto.getImgUrl());
+        dto.setDescription(courseDto.getDescription());
+        dto.setModuleCount(courseDto.getModuleCount());
+        dto.setDescription(courseDto.getDescription());
+
+
+        Optional<StudentEnrollment> enrollmentOptional = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, courseDto.getId(), group);
+        if (enrollmentOptional.isPresent()) {
+            dto.setIsStarted(1);
+            StudentEnrollment enrollment = enrollmentOptional.get();
+            if (enrollment.getStatus() == StudentEnrollmentStatus.FINISHED) {
+                dto.setIsFinished(1);
+            }
+        }
+
+        if (group.getStatus() == GroupStatus.EXPIRED) {
+            dto.setIsExpired(1);
+        }
+
+        StudentEnrollment enrollment = enrollmentOptional.orElseGet(StudentEnrollment::new);
+        List<String> moduleIds = studentEnrollmentDetailRepository.findModuleIdsByStudentEnrollment(enrollment);
+        List<String> topicIds = studentEnrollmentDetailRepository.findTopicIdsByStudentEnrollment(enrollment);
+        ;
+        List<String> contentIds = studentEnrollmentDetailRepository.findContentIdsByStudentEnrollment(enrollment);
+
+        List<ModuleDto> modules = courseDto.getModules();
+        List<StudentCourseDetailDto.Module> moduleDtos = new ArrayList<>();
+        modules.forEach(e -> {
+                    StudentCourseDetailDto.Module moduleDto = new StudentCourseDetailDto.Module();
+                    moduleDto.setId(e.getId());
+                    moduleDto.setName(e.getName());
+                    moduleDto.setTopicCount(e.getTopicCount());
+                    moduleDto.setOrder(e.getOrder());
+                    moduleDto.setTeacherName(e.getTeacherName());
+
+                    List<TopicDto> topics = e.getTopics();
+                    topics.forEach(t -> {
+                        StudentCourseDetailDto.Topic topic = new StudentCourseDetailDto.Topic();
+                        topic.setId(t.getId());
+                        topic.setName(t.getName());
+                        topic.setOrder(t.getOrder());
+                        topic.setContentType(topic.getContentType());
+                        List<StudentCourseDetailDto.TopicContent> topicContents = new  ArrayList<>();
+                        if (topic.getContentType() == 2 || topic.getContentType() == 3) {
+                            topicContents.add(null);
+                        } else {
+                            StudentCourseDetailDto.TopicMainContent  topicMainContent = new StudentCourseDetailDto.TopicMainContent();
+                            topicMainContent.setId(t.getContentFileId());
+                            topicMainContent.setUrl("url should be set");
+                            // add minutes
+                            if (contentIds.contains(t.getContentFileId())) {
+                                topicMainContent.setIsFinished(1);
+                            }
+
+                            topicContents.add(topicMainContent);
+                        }
+                        StudentCourseDetailDto.TopicLectureOrPresentationContent topicLecture = new StudentCourseDetailDto.TopicLectureOrPresentationContent();
+                        topicLecture.setId(t.getLectureFileId());
+                        topicLecture.setUrl("url should be set");
+                        if (contentIds.contains(t.getLectureFileId())) {
+                            topicLecture.setIsFinished(1);
+                        }
+                        topicContents.add(topicLecture);
+                        StudentCourseDetailDto.TopicLectureOrPresentationContent topicPresentation = new StudentCourseDetailDto.TopicLectureOrPresentationContent();
+                        topicPresentation.setId(t.getLectureFileId());
+                        topicPresentation.setUrl("url should be set");
+                        if (contentIds.contains(t.getPresentationFileId())) {
+                            topicLecture.setIsFinished(1);
+                        }
+                        topicContents.add(topicPresentation);
+                        StudentCourseDetailDto.TopicTestContent topicTest = new StudentCourseDetailDto.TopicTestContent();
+                        topicTest.setId(t.getTestId());
+                        List<StudentTestAttempt> studentAttempts = studentTestAttemptRepository
+                                .findByStudentAndGroupAndTestId(student, group, t.getTestId());
+                        if (!studentAttempts.isEmpty()) {
+                            topicTest.setIsAttempted(1);
+                            if (studentAttempts.stream().filter(sa -> sa.getIsSuccess() == 1).findFirst().isPresent()) {
+                                topicTest.setIsFinished(1);
+                                moduleDto.setIsFinished(1);
+                                topic.setIsFinished(1);
+                            }
+                        }
+                        topicContents.add(topicTest);
+                        topic.setContents(topicContents);
+                    });
+
+                    moduleDtos.add(moduleDto);
+                }
+        );
+        dto.setModules(moduleDtos);
+        return dto;
+    }
+
 
     public BaseResponse getCoursesWithoutPagination() {
         return malakaInternalClient.getCourses();

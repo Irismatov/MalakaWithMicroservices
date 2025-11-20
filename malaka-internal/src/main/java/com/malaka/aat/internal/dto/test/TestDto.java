@@ -21,7 +21,7 @@ public class TestDto {
     public TestDto(Test test) {
         this.id = test.getId();
         this.attemptLimit = test.getAttemptLimit();
-
+        this.durationInMinutes = test.getDurationInMinutes();
         if (test.getQuestions() != null) {
             this.questions = test.getQuestions().stream()
                     .map(TestQuestionDto::new)

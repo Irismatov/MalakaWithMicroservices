@@ -30,6 +30,7 @@ public class StudentCourseDetailDto extends StudentCourseDto {
         private Integer order;
         private Integer contentType;
         private int isFinished;
+        private List<TopicContent> contents;
     }
 
     @Getter
