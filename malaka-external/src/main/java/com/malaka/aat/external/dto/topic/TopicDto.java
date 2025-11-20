@@ -17,4 +17,8 @@ public class TopicDto {
     private String lectureFileId;
     private String presentationFileId;
     private String testId;
+    private Integer contentType;
+    private Integer questionCount;
+    private Integer attemptLimit;
+    private Integer durationInMinutes;
 }

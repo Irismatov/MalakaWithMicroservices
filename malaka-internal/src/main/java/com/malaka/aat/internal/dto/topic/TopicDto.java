@@ -26,6 +26,9 @@ public class TopicDto {
     private String lectureFileId;
     private String presentationFileId;
     private String testId;
+    private Integer questionCount;
+    private Integer attemptLimit;
+    private Integer durationInMinutes;
 
     public TopicDto(Topic topic) {
         this.id = topic.getId();
@@ -59,6 +62,9 @@ public class TopicDto {
         if (topic.getTest() != null) {
             this.testDto = new TestDto(topic.getTest());
             this.testId = topic.getTest().getId();
+            this.questionCount = topic.getTest().getQuestions().size();
+            this.attemptLimit = topic.getTest().getAttemptLimit();
+            this.durationInMinutes = topic.getTest().getDurationInMinutes();
         }
     }
 

@@ -8,8 +8,13 @@ import java.util.List;
 @Getter
 @Setter
 public class StudentCourseDetailDto extends StudentCourseDto {
+    public static Integer MAIN_CONTENT = 0;
+    public static Integer LECTURE = 0;
+    public static Integer PRESENTATION = 0;
+    public static Integer TEST = 0;
+
+
     private List<Module> modules;
-    private List<Topic> topics;
 
     @Getter
     @Setter
@@ -20,6 +25,7 @@ public class StudentCourseDetailDto extends StudentCourseDto {
         private Integer order;
         private String teacherName;
         private int isFinished;
+        private List<Topic> topics;
     }
 
     @Getter
@@ -28,7 +34,6 @@ public class StudentCourseDetailDto extends StudentCourseDto {
         private String id;
         private String name;
         private Integer order;
-        private Integer contentType;
         private int isFinished;
         private List<TopicContent> contents;
     }
@@ -38,14 +43,21 @@ public class StudentCourseDetailDto extends StudentCourseDto {
     public static class TopicContent {
         private String id;
         private int isFinished;
+        private Integer type;
     }
 
 
     @Getter
     @Setter
     public static class TopicMainContent extends TopicContent {
-        private String url;
+        private Integer contentType;
+    }
+
+    @Getter
+    @Setter
+    public static class TopicMainContentVideAudio extends TopicMainContent {
         private Integer duration;
+        private String url;
     }
 
     @Getter
@@ -60,5 +72,6 @@ public class StudentCourseDetailDto extends StudentCourseDto {
         private Integer totalAttempts;
         private int isAttempted;
         private Integer questionCount;
+        private Integer durationInMinutes;
     }
 }

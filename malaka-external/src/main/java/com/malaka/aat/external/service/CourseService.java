@@ -166,6 +166,12 @@ public class CourseService {
         dto.setDescription(courseDto.getDescription());
         dto.setModuleCount(courseDto.getModuleCount());
         dto.setDescription(courseDto.getDescription());
+        dto.setGroupId(group.getId());
+        dto.setGroupName(group.getOrder() + "-guruh");
+        dto.setStartDate(group.getStartDate().toLocalDate());
+        dto.setEndDate(group.getEndDate().toLocalDate());
+        dto.setGroupStatus(group.getStatus().getValue());
+
 
 
         Optional<StudentEnrollment> enrollmentOptional = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, courseDto.getId(), group);
@@ -181,11 +187,19 @@ public class CourseService {
             dto.setIsExpired(1);
         }
 
-        StudentEnrollment enrollment = enrollmentOptional.orElseGet(StudentEnrollment::new);
-        List<String> moduleIds = studentEnrollmentDetailRepository.findModuleIdsByStudentEnrollment(enrollment);
-        List<String> topicIds = studentEnrollmentDetailRepository.findTopicIdsByStudentEnrollment(enrollment);
-        ;
-        List<String> contentIds = studentEnrollmentDetailRepository.findContentIdsByStudentEnrollment(enrollment);
+        List<String> moduleIds;
+        List<String> topicIds;
+        List<String> contentIds;
+        if (enrollmentOptional.isPresent()) {
+            StudentEnrollment enrollment = enrollmentOptional.get();
+            moduleIds = studentEnrollmentDetailRepository.findModuleIdsByStudentEnrollment(enrollment);
+            topicIds = studentEnrollmentDetailRepository.findTopicIdsByStudentEnrollment(enrollment);
+            contentIds = studentEnrollmentDetailRepository.findContentIdsByStudentEnrollment(enrollment);
+        } else {
+            moduleIds = new ArrayList<>();
+            topicIds = new ArrayList<>();
+            contentIds = new ArrayList<>();
+        }
 
         List<ModuleDto> modules = courseDto.getModules();
         List<StudentCourseDetailDto.Module> moduleDtos = new ArrayList<>();
@@ -198,32 +212,36 @@ public class CourseService {
                     moduleDto.setTeacherName(e.getTeacherName());
 
                     List<TopicDto> topics = e.getTopics();
+                    List<StudentCourseDetailDto.Topic>  topicDtos = new ArrayList<>();
                     topics.forEach(t -> {
-                        StudentCourseDetailDto.Topic topic = new StudentCourseDetailDto.Topic();
-                        topic.setId(t.getId());
-                        topic.setName(t.getName());
-                        topic.setOrder(t.getOrder());
-                        topic.setContentType(topic.getContentType());
+                        StudentCourseDetailDto.Topic topicDto = new StudentCourseDetailDto.Topic();
+                        topicDto.setId(t.getId());
+                        topicDto.setName(t.getName());
+                        topicDto.setOrder(t.getOrder());
                         List<StudentCourseDetailDto.TopicContent> topicContents = new  ArrayList<>();
-                        if (topic.getContentType() == 2 || topic.getContentType() == 3) {
-                            topicContents.add(null);
+                        StudentCourseDetailDto.TopicMainContent topicMainContent;
+                        if (t.getContentType() == 2 || t.getContentType() == 3) {
+                            topicMainContent = new StudentCourseDetailDto.TopicMainContent();
                         } else {
-                            StudentCourseDetailDto.TopicMainContent  topicMainContent = new StudentCourseDetailDto.TopicMainContent();
-                            topicMainContent.setId(t.getContentFileId());
-                            topicMainContent.setUrl("url should be set");
+                            StudentCourseDetailDto.TopicMainContentVideAudio topicMainContentAudioVideo = new StudentCourseDetailDto.TopicMainContentVideAudio();
+                            topicMainContentAudioVideo.setId(t.getContentFileId());
+                            topicMainContentAudioVideo.setUrl("url should be set");
+                            topicMainContent = topicMainContentAudioVideo;
                             // add minutes
-                            if (contentIds.contains(t.getContentFileId())) {
-                                topicMainContent.setIsFinished(1);
-                            }
-
-                            topicContents.add(topicMainContent);
                         }
+                        if (contentIds.contains(t.getContentFileId())) {
+                            topicMainContent.setIsFinished(1);
+                        }
+                        topicMainContent.setContentType(t.getContentType());
+                        topicMainContent.setType(StudentCourseDetailDto.MAIN_CONTENT);
+                        topicContents.add(topicMainContent);
                         StudentCourseDetailDto.TopicLectureOrPresentationContent topicLecture = new StudentCourseDetailDto.TopicLectureOrPresentationContent();
                         topicLecture.setId(t.getLectureFileId());
                         topicLecture.setUrl("url should be set");
                         if (contentIds.contains(t.getLectureFileId())) {
                             topicLecture.setIsFinished(1);
                         }
+                        topicLecture.setType(StudentCourseDetailDto.LECTURE);
                         topicContents.add(topicLecture);
                         StudentCourseDetailDto.TopicLectureOrPresentationContent topicPresentation = new StudentCourseDetailDto.TopicLectureOrPresentationContent();
                         topicPresentation.setId(t.getLectureFileId());
@@ -231,9 +249,12 @@ public class CourseService {
                         if (contentIds.contains(t.getPresentationFileId())) {
                             topicLecture.setIsFinished(1);
                         }
+                        topicPresentation.setType(StudentCourseDetailDto.PRESENTATION);
                         topicContents.add(topicPresentation);
                         StudentCourseDetailDto.TopicTestContent topicTest = new StudentCourseDetailDto.TopicTestContent();
                         topicTest.setId(t.getTestId());
+                        topicTest.setTotalAttempts(t.getAttemptLimit());
+                        topicTest.setQuestionCount(t.getQuestionCount());
                         List<StudentTestAttempt> studentAttempts = studentTestAttemptRepository
                                 .findByStudentAndGroupAndTestId(student, group, t.getTestId());
                         if (!studentAttempts.isEmpty()) {
@@ -241,13 +262,16 @@ public class CourseService {
                             if (studentAttempts.stream().filter(sa -> sa.getIsSuccess() == 1).findFirst().isPresent()) {
                                 topicTest.setIsFinished(1);
                                 moduleDto.setIsFinished(1);
-                                topic.setIsFinished(1);
+                                topicDto.setIsFinished(1);
                             }
                         }
+                        topicTest.setDurationInMinutes(t.getDurationInMinutes());
+                        topicTest.setType(StudentCourseDetailDto.TEST);
                         topicContents.add(topicTest);
-                        topic.setContents(topicContents);
+                        topicDto.setContents(topicContents);
+                        topicDtos.add(topicDto);
                     });
-
+                    moduleDto.setTopics(topicDtos);
                     moduleDtos.add(moduleDto);
                 }
         );
