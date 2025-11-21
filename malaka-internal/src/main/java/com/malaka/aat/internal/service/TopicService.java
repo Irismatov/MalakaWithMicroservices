@@ -339,7 +339,7 @@ public class TopicService {
 
         if (courseState.equals("004")) {
             return;
-        } else if (courseState.equals("002") && moduleState.equals("001")) {
+        } else if (courseState.equals("002") && (moduleState.equals("001") || moduleState.equals("004")) ) {
             return;
         }
 

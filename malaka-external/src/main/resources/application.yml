@@ -1,18 +1,11 @@
 server:
   port: 8082
 
-app:
-  projectUrl: http://192.168.25.4:8585
-  file:
-    path: C:/Users/j.irismatov/Desktop/MalakaFiles/external/images/
-  security:
-    secretKey: Y1ZNbXM1aGZTaWlxbnowMWc3UTFuSTgxZEp5eFdKdjE=
-    accessTokenExpirationInHours: 1
-    refreshTokenExpirationInHours: 24
+
 
 spring:
   profiles:
-    active: test
+    active: local
   servlet:
     multipart:
       enabled: true

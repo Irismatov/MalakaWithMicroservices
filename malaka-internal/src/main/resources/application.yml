@@ -7,7 +7,7 @@ spring:
   main:
     allow-bean-definition-overriding: true
   profiles:
-    active: test
+    active: local
   jpa:
     hibernate:
       ddl-auto: update
@@ -20,15 +20,7 @@ spring:
 
 
 
-app:
-  security:
-    secretKey: Y1ZNbXM1aGZTaWlxbnowMWc3UTFuSTgxZEp5eFdKdjE=
-    accessTokenExpirationInHours: 1
-    refreshTokenExpirationInHours: 24
-  file:
-    path: C:/Users/j.irismatov/Desktop/MalakaFiles/internal/images/
-    video-path: C:/Users/j.irismatov/Desktop/MalakaFiles/internal/videos/
-    chunk-size: 5242880
+
 
 # Client Configuration for External Services
 clients:

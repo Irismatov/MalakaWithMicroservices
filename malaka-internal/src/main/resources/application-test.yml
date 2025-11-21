@@ -9,3 +9,13 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.DB2400Dialect
+
+app:
+  security:
+    secretKey: Y1ZNbXM1aGZTaWlxbnowMWc3UTFuSTgxZEp5eFdKdjE=
+    accessTokenExpirationInHours: 1
+    refreshTokenExpirationInHours: 24
+  file:
+    path: C:/Users/j.irismatov/Desktop/MalakaFiles/internal/images/
+    video-path: C:/Users/j.irismatov/Desktop/MalakaFiles/internal/videos/
+    chunk-size: 5242880
