@@ -232,7 +232,7 @@ public class CourseService {
                         List<StudentCourseDetailDto.TopicContent> topicContents = new  ArrayList<>();
                         StudentCourseDetailDto.TopicMainContent topicMainContent;
 
-                        if (topicStartIds.contains(t.getId())) {
+                        if (moduleDto.getIsStarted() == 1 && topicStartIds.contains(t.getId())) {
                             topicDto.setIsStarted(1);
                         }
 
@@ -248,7 +248,7 @@ public class CourseService {
                         if (contentFinishIds.contains(t.getContentFileId())) {
                             topicMainContent.setIsFinished(1);
                         }
-                        if (contentStartIds.contains(t.getContentFileId())) {
+                        if (topicDto.getIsStarted() == 1 && contentStartIds.contains(t.getContentFileId())) {
                             topicMainContent.setIsStarted(1);
                         }
                         topicMainContent.setContentType(t.getContentType());
@@ -260,7 +260,7 @@ public class CourseService {
                         if (contentFinishIds.contains(t.getLectureFileId())) {
                             topicLecture.setIsFinished(1);
                         }
-                        if (contentStartIds.contains(t.getLectureFileId())) {
+                        if (topicDto.getIsStarted() == 1 && contentStartIds.contains(t.getLectureFileId())) {
                             topicLecture.setIsStarted(1);
                         }
                         topicLecture.setType(StudentCourseDetailDto.LECTURE);
@@ -271,7 +271,7 @@ public class CourseService {
                         if (contentFinishIds.contains(t.getPresentationFileId())) {
                             topicLecture.setIsFinished(1);
                         }
-                        if (contentStartIds.contains(t.getPresentationFileId())) {
+                        if (topicDto.getIsStarted() == 1 && contentStartIds.contains(t.getPresentationFileId())) {
                             topicPresentation.setIsStarted(1);
                         }
                         topicPresentation.setType(StudentCourseDetailDto.PRESENTATION);
@@ -282,7 +282,7 @@ public class CourseService {
                         topicTest.setQuestionCount(t.getQuestionCount());
                         List<StudentTestAttempt> studentAttempts = studentTestAttemptRepository
                                 .findByStudentAndGroupAndTestId(student, group, t.getTestId());
-                        if (!studentAttempts.isEmpty()) {
+                        if (topicDto.getIsStarted() == 1 && !studentAttempts.isEmpty()) {
                             topicTest.setIsAttempted(1);
                             topicTest.setIsStarted(1);
                             if (studentAttempts.stream().filter(sa -> sa.getIsSuccess() == 1).findFirst().isPresent()) {
