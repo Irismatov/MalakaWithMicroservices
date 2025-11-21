@@ -124,4 +124,14 @@ public class CourseController {
         return null;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @GetMapping("/course/{courseId}/module/{moduleId}/topic/{topicId}/content/{contentId}")
+    public ResponseEntity<?> getCourseContent(
+            @PathVariable String courseId,
+            @PathVariable String moduleId,
+            @PathVariable String topicId,
+            @PathVariable String contentId
+    ) {
+        return courseService.getCourseContent(courseId, moduleId, topicId, contentId);
+    }
 }

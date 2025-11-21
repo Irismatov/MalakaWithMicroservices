@@ -5,6 +5,7 @@ import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.external.service.CourseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -34,5 +35,13 @@ public class CourseController {
         return courseService.getCourseById(groupId);
     }
 
-
+    @GetMapping("/course/group/{groupId}/module/{moduleId}/topic/{topicId}/content/{contentId}")
+    public ResponseEntity<?> getCourseModuleTopicContent(
+            @PathVariable String groupId,
+            @PathVariable String moduleId,
+            @PathVariable String topicId,
+            @PathVariable String contentId
+    ) {
+        return courseService.getCourseModuleTopicContent(groupId, moduleId, topicId, contentId);
+    }
 }

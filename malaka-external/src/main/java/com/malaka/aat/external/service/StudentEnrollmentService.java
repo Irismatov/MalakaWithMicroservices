@@ -305,6 +305,7 @@ public class StudentEnrollmentService {
                 findContentIdsByStudentEnrollmentAndType(enrollment, StudentEnrollmentDetailType.FINISH);
 
         if (currentTopicDto.getContentFileId() != null && currentTopicDto.getContentFileId().equals(contentId)) {
+            // here logic is a bit incorrect
             ModuleDto moduleDto = courseDto.getModules().stream().filter(e -> e.getOrder() == currentModuleDto.getOrder() - 1).findFirst().orElseThrow();
             TopicDto topicDto = moduleDto.getTopics().stream().filter(e -> Objects.equals(e.getOrder(), moduleDto.getTopicCount())).findFirst().orElseThrow();
             if (contentIds.contains(topicDto.getContentFileId())) {

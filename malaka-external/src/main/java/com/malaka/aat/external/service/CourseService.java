@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -307,5 +308,32 @@ public class CourseService {
 
     public BaseResponse getCoursesWithoutPagination() {
         return malakaInternalClient.getCourses();
+    }
+
+    public ResponseEntity<?> getCourseModuleTopicContent(String groupId, String moduleId, String topicId, String contentId) {
+
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException("Group not found with id " + groupId));
+        User currentUser = sessionService.getCurrentUser();
+        Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new NotFoundException("Current user is not a student"));
+        if (!group.getStudents().contains(student)) {
+            throw new BadRequestException("Student does not belong to this group");
+        }
+        StudentEnrollment enrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, group.getCourseId(), group).orElseThrow(() -> new BadRequestException("Corse has not been started yet"));
+        List<String> moduleIdsStart = studentEnrollmentDetailRepository.findModuleIdsByStudentEnrollment(enrollment, StudentEnrollmentDetailType.START);
+        if (!moduleIdsStart.contains(moduleId)) {
+            throw new  BadRequestException("Student is not eligible to get the content");
+        }
+        List<String> topicIdsStart = studentEnrollmentDetailRepository.findTopicIdsByStudentEnrollment(enrollment, StudentEnrollmentDetailType.START);
+        if (!topicIdsStart.contains(topicId)) {
+            throw new  BadRequestException("Student is not eligible to get the content");
+        }
+        List<String> contentIds = studentEnrollmentDetailRepository.findContentIdsByStudentEnrollmentAndType(enrollment, StudentEnrollmentDetailType.START);
+        if (!contentIds.contains(contentId)) {
+            throw new  BadRequestException("Student is not eligible to get the content");
+        }
+
+        return malakaInternalClient.getCourseModuleTopicContent(
+                group.getCourseId(),  moduleId, topicId, contentId
+        );
     }
 }

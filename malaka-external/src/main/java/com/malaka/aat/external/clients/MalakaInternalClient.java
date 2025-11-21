@@ -12,22 +12,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-/**
- * Feign Client for communicating with malaka-internal service.
- * Uses Eureka service discovery with load balancing.
- */
+
 @FeignClient(
         name = "malaka-internal",
         configuration = MalakaInternalClientConfig.class
 )
 public interface MalakaInternalClient {
 
-    /**
-     * Retrieves course details by ID from malaka-internal service.
-     *
-     * @param courseId the course ID to retrieve
-     * @return BaseResponse containing course data or error information
-     */
+
     @GetMapping("/api/course/{courseId}")
     BaseResponse getCourseById(@PathVariable("courseId") String courseId);
 
@@ -54,4 +46,12 @@ public interface MalakaInternalClient {
 
     @GetMapping("/api/course/name/{id}")
     BaseResponse getCourseNameById(@PathVariable String id);
+
+    @GetMapping("/api/course/{courseId}/module/{moduleId}/topic/{topicId}/content/{contentId}")
+    ResponseEntity<Resource> getCourseModuleTopicContent(
+            @PathVariable String courseId,
+            @PathVariable String moduleId,
+            @PathVariable String topicId,
+            @PathVariable String contentId
+    );
 }

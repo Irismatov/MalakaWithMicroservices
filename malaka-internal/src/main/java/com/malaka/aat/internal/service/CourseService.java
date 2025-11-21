@@ -6,11 +6,13 @@ import com.malaka.aat.core.dto.ResponseStatus;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.core.exception.custom.*;
 import com.malaka.aat.core.util.ResponseUtil;
+import com.malaka.aat.internal.enumerators.topic.TopicContentType;
 import com.malaka.aat.internal.repository.TopicRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -226,7 +231,7 @@ public class CourseService {
             }
             case "003" -> {
                 // SEND TO FACULTY HEAD
-                course =  self.getCourseToMethodist(id);
+                course = self.getCourseToMethodist(id);
 
                 // Validate that ALL modules are in SENT state (002) before sending to faculty head
                 boolean allModulesSent = course.getModules().stream()
@@ -249,8 +254,9 @@ public class CourseService {
                 // Save modules with updated states
                 moduleRepository.saveAll(course.getModules());
                 course = courseRepository.save(course);
-            } case "007" -> {
-                course =  self.getCourseToMethodist(id);
+            }
+            case "007" -> {
+                course = self.getCourseToMethodist(id);
                 CourseState.setState(course, dto.getState());
                 course = courseRepository.save(course);
             }
@@ -344,7 +350,6 @@ public class CourseService {
         courseWithModules.getModules().add(savedModule);
 
 
-
         CourseDto courseDto = new CourseDto(courseWithModules);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         response.setData(courseDto);
@@ -369,7 +374,7 @@ public class CourseService {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "updtime"));
         Page<Course> coursePage;
         if (isAdmin) {
-            coursePage =  courseRepository.getCoursesFilteredForAdmin(
+            coursePage = courseRepository.getCoursesFilteredForAdmin(
                     filterDto.getName(),
                     filterDto.getCourseFormat(),
                     filterDto.getCourseType(),
@@ -377,16 +382,16 @@ public class CourseService {
                     filterDto.getState(),
                     pageRequest
             );
-        } else if (isMethodist){
-            coursePage =  courseRepository.getCoursesFilteredForAdmin(
+        } else if (isMethodist) {
+            coursePage = courseRepository.getCoursesFilteredForAdmin(
                     filterDto.getName(),
                     filterDto.getCourseFormat(),
                     filterDto.getCourseType(),
                     filterDto.getCourseStudentType(),
                     filterDto.getState(),
                     pageRequest);
-        } else if  (isTeacher) {
-            coursePage = courseRepository.getCoursesFilteredForTeacher (
+        } else if (isTeacher) {
+            coursePage = courseRepository.getCoursesFilteredForTeacher(
                     currentUser.getId(),
                     filterDto.getName(),
                     filterDto.getCourseFormat(),
@@ -396,7 +401,7 @@ public class CourseService {
                     pageRequest
             );
         } else if (isFacultyHead) {
-            coursePage =  courseRepository.getCoursesFilteredForFacultyHead(
+            coursePage = courseRepository.getCoursesFilteredForFacultyHead(
                     filterDto.getName(),
                     filterDto.getCourseFormat(),
                     filterDto.getCourseType(),
@@ -504,5 +509,49 @@ public class CourseService {
         response.setData(course.getName());
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
+    }
+
+    public ResponseEntity<?> getCourseContent(String courseId, String moduleId, String topicId, String contentId) {
+        // validations
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course not found with id: " + courseId));
+        List<Module> modules = course.getModules();
+        Module module = modules.stream().filter(m -> m.getId().equals(moduleId)).findFirst().orElseThrow(() -> new NotFoundException("Module not found with id: " + moduleId));
+        List<Topic> topics = module.getTopics();
+        Topic topic = topics.stream().filter(t -> t.getId().equals(topicId)).findFirst().orElseThrow(() -> new NotFoundException("Topic not found with id: " + topicId));
+        Path path;
+        String filename;
+        MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
+        if (topic.getContentFile() != null && topic.getContentFile().getId().equals(contentId)) {
+            File contentFile = topic.getContentFile();
+            path = Paths.get(contentFile.getPath());
+            filename = contentFile.getOriginalName();
+            if (contentFile.getContentType() != null && !contentFile.getContentType().isEmpty()) {
+                mediaType = MediaType.parseMediaType(contentFile.getContentType());
+            } else if (topic.getContentType() == TopicContentType.VIDEO) {
+                mediaType = MediaType.parseMediaType("video/*");
+                path = Paths.get(contentFile.getPath());
+            } else if (topic.getContentType() == TopicContentType.AUDIO) {
+                mediaType = MediaType.parseMediaType("audio/*");
+            }
+
+        } else if (topic.getLectureFile().getId().equals(contentId)) {
+            mediaType = MediaType.APPLICATION_PDF;
+            path = Paths.get(topic.getLectureFile().getPath());
+            filename =  topic.getLectureFile().getOriginalName();
+        } else if (topic.getPresentationFile().getId().equals(contentId)) {
+            mediaType = MediaType.APPLICATION_PDF;
+            path = Paths.get(topic.getPresentationFile().getPath());
+            filename =  topic.getPresentationFile().getOriginalName();
+        } else {
+            throw new NotFoundException("Content not found with id " + contentId);
+        }
+
+        Resource resource = new FileSystemResource(path);
+
+
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .body(resource);
     }
 }

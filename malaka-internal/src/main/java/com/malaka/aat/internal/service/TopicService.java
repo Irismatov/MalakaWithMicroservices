@@ -465,13 +465,7 @@ public class TopicService {
         return response;
     }
 
-    /**
-     * Extract file ID from URL
-     * Supports formats:
-     * - http://localhost:8585/api/file/{fileId}
-     * - /api/file/{fileId}
-     * - {fileId} (just the UUID)
-     */
+
     private String extractFileIdFromUrl(String imgUrl) {
         if (imgUrl == null || imgUrl.isEmpty()) {
             return null;
@@ -558,7 +552,7 @@ public class TopicService {
         Topic topic = findById(topicId);
 
         // Check if content type is ZOOM - no file exists for ZOOM
-        if (topic.getContentType() == TopicContentType.ZOOM) {
+        if (topic.getContentType() == TopicContentType.ZOOM || topic.getContentType() == TopicContentType.CONFIDENTIAL) {
             throw new NotFoundException("Content file not found for ZOOM type topic with id: " + topicId);
         }
 
