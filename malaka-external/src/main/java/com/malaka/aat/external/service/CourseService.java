@@ -268,10 +268,10 @@ public class CourseService {
                         topicLecture.setType(CourseContentType.LECTURE.getValue());
                         topicContents.add(topicLecture);
                         StudentCourseDetailDto.TopicLectureOrPresentationContent topicPresentation = new StudentCourseDetailDto.TopicLectureOrPresentationContent();
-                        topicPresentation.setId(t.getLectureFileId());
+                        topicPresentation.setId(t.getPresentationFileId());
                         topicPresentation.setUrl("url should be set");
                         if (contentFinishIds.contains(t.getPresentationFileId())) {
-                            topicLecture.setIsFinished(1);
+                            topicPresentation.setIsFinished(1);
                         }
                         if (topicDto.getIsStarted() == 1 && contentStartIds.contains(t.getPresentationFileId())) {
                             topicPresentation.setIsStarted(1);

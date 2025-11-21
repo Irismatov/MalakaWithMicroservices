@@ -38,7 +38,15 @@ public class FileService {
         Optional<File> byHash = repository.findByHash(hash);
 
         if (byHash.isPresent()) {
-            return byHash.get();
+            File oldFile = byHash.get();
+            File file = new  File();
+            file.setHash(hash);
+            file.setContentType(oldFile.getContentType());
+            file.setFileSize(oldFile.getFileSize());
+            file.setOriginalName(oldFile.getOriginalName());
+            file.setPath(oldFile.getPath());
+            file.setExtension(oldFile.getExtension());
+            return repository.save(file);
         }
 
         LocalDate today = LocalDate.now();
