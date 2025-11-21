@@ -317,6 +317,9 @@ public class CourseService {
         Group group = groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException("Group not found with id " + groupId));
         User currentUser = sessionService.getCurrentUser();
         Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new NotFoundException("Current user is not a student"));
+        if (group.getStatus() != GroupStatus.STARTED) {
+            throw new BadRequestException("Group state is not started state");
+        }
         if (!group.getStudents().contains(student)) {
             throw new BadRequestException("Student does not belong to this group");
         }
@@ -345,6 +348,9 @@ public class CourseService {
         Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new NotFoundException("Current user is not a student"));
         if (!group.getStudents().contains(student)) {
             throw new BadRequestException("Student does not belong to this group");
+        }
+        if (group.getStatus() != GroupStatus.STARTED) {
+            throw new BadRequestException("Group state is not started state");
         }
         StudentEnrollment enrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, group.getCourseId(), group).orElseThrow(() -> new BadRequestException("Corse has not been started yet"));
         StudentEnrollmentDetail studentEnrollmentDetail = studentEnrollmentDetailRepository.findLastByStudentEnrollmentAndType(enrollment, StudentEnrollmentDetailType.START).orElseThrow(() -> new BadRequestException("Student has not started any task yet"));

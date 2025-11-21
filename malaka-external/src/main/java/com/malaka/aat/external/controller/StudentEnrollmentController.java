@@ -32,4 +32,14 @@ public class StudentEnrollmentController {
         return studentEnrollmentService.startTask(groupId, moduleId, topicId, contentId);
     }
 
+    @PostMapping("/enrollment/group/{groupId}/module/{moduleId}/topic/{topicId}/content/{contentId}/finishTask")
+    public BaseResponse finishTask(
+            @PathVariable String groupId,
+            @PathVariable String moduleId,
+            @PathVariable String topicId,
+            @PathVariable String contentId
+    ) {
+        return studentEnrollmentService.finishTask(groupId, moduleId, topicId, contentId);
+    }
+
 }

@@ -12,6 +12,7 @@ import com.malaka.aat.external.dto.course.external.CourseDto;
 import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
 import com.malaka.aat.external.dto.topic.TopicDto;
+import com.malaka.aat.external.enumerators.course.CourseContentType;
 import com.malaka.aat.external.enumerators.group.GroupStatus;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentDetailType;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
@@ -254,6 +255,13 @@ public class StudentEnrollmentService {
         StudentEnrollment enrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, group.getCourseId(), group).orElseThrow(
                 () -> new BadRequestException("Course must have been started before starting a task")
         );
+        Optional<StudentEnrollmentDetail> enrollmentDetailFinishOptional = studentEnrollmentDetailRepository.findByModuleIdAndTopicIdAndContentIdAndType(
+                enrollment, moduleId, topicId, contentId, StudentEnrollmentDetailType.START
+        );
+
+        if (enrollmentDetailFinishOptional.isPresent()) {
+            throw new BadRequestException("Task already started");
+        }
 
         BaseResponse internalResponse = malakaInternalClient.getCourseById(enrollment.getCourseId());
         if (internalResponse.getResultCode() != 0) {
@@ -280,6 +288,18 @@ public class StudentEnrollmentService {
         detail.setContentId(contentId);
         detail.setStudentEnrollment(enrollment);
         detail.setType(StudentEnrollmentDetailType.START);
+
+        if (topicDto.getContentFileId().equals(contentId)) {
+            detail.setContentType(CourseContentType.MAIN_CONTENT);
+        } else if (topicDto.getLectureFileId().equals(contentId)) {
+            detail.setContentType(CourseContentType.LECTURE);
+        } else if (topicDto.getPresentationFileId().equals(contentId)) {
+            detail.setContentType(CourseContentType.PRESENTATION);
+        } else if (topicDto.getTestId().equals(contentId)) {
+            detail.setContentType(CourseContentType.TEST);
+        }
+
+
         studentEnrollmentDetailRepository.save(detail);
 
         BaseResponse response = new BaseResponse();
@@ -320,5 +340,49 @@ public class StudentEnrollmentService {
         }
 
         return false;
+    }
+
+    public BaseResponse finishTask(String groupId, String moduleId, String topicId, String contentId) {
+
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException("Group not found with id " + groupId));
+        User currentUser = sessionService.getCurrentUser();
+        Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new NotFoundException("Current user is not a student"));
+        if (group.getStatus() != GroupStatus.STARTED) {
+            throw new BadRequestException("Group state is not started state");
+        }
+        if (!group.getStudents().contains(student)) {
+            throw new BadRequestException("Student does not belong to this group");
+        }
+        StudentEnrollment enrollment = studentEnrollmentRepository
+                .findByStudentAndCourseIdAndGroup(student, group.getCourseId(), group)
+                .orElseThrow(() -> new BadRequestException("Corse has not been started yet"));
+
+        Optional<StudentEnrollmentDetail> enrollmentDetailFinishOptional = studentEnrollmentDetailRepository.findByModuleIdAndTopicIdAndContentIdAndType(
+                enrollment, moduleId, topicId, contentId, StudentEnrollmentDetailType.FINISH
+        );
+
+        if (enrollmentDetailFinishOptional.isPresent()) {
+            throw new BadRequestException("Task already finished");
+        }
+
+        StudentEnrollmentDetail studentEnrollmentDetailStart = studentEnrollmentDetailRepository.findByModuleIdAndTopicIdAndContentIdAndType(
+                enrollment, moduleId, topicId, contentId, StudentEnrollmentDetailType.START
+        ).orElseThrow(() -> new NotFoundException("Student is not eligible to finish the task"));
+
+        if (studentEnrollmentDetailStart.getContentType() == CourseContentType.TEST) {
+            throw new BadRequestException("Task can't be finished at this endpoint");
+        }
+
+        StudentEnrollmentDetail newStudentEnrollmentDetail = new StudentEnrollmentDetail();
+        newStudentEnrollmentDetail.setStudentEnrollment(enrollment);
+        newStudentEnrollmentDetail.setModuleId(moduleId);
+        newStudentEnrollmentDetail.setTopicId(topicId);
+        newStudentEnrollmentDetail.setContentId(contentId);
+        newStudentEnrollmentDetail.setContentType(studentEnrollmentDetailStart.getContentType());
+        newStudentEnrollmentDetail.setType(StudentEnrollmentDetailType.FINISH);
+        studentEnrollmentDetailRepository.save(newStudentEnrollmentDetail);
+        BaseResponse response = new BaseResponse();
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
     }
 }
