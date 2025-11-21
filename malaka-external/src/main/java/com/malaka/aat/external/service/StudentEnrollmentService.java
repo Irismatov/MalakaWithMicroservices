@@ -260,7 +260,10 @@ public class StudentEnrollmentService {
         );
 
         if (enrollmentDetailFinishOptional.isPresent()) {
-            throw new BadRequestException("Task already started");
+            BaseResponse response = new BaseResponse();
+            ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+            response.setData("Task is already started");
+            return response;
         }
 
         BaseResponse internalResponse = malakaInternalClient.getCourseById(enrollment.getCourseId());
@@ -362,7 +365,10 @@ public class StudentEnrollmentService {
         );
 
         if (enrollmentDetailFinishOptional.isPresent()) {
-            throw new BadRequestException("Task already finished");
+            BaseResponse response = new BaseResponse();
+            ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+            response.setData("Task is already finished");
+            return response;
         }
 
         StudentEnrollmentDetail studentEnrollmentDetailStart = studentEnrollmentDetailRepository.findByModuleIdAndTopicIdAndContentIdAndType(
