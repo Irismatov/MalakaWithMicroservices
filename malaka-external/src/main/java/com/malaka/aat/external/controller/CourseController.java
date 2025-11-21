@@ -35,6 +35,11 @@ public class CourseController {
         return courseService.getCourseById(groupId);
     }
 
+    @GetMapping("/course/group/{groupId}/continueCourse")
+    public BaseResponse getCourseByIdWithoutPagination(@PathVariable String groupId) {
+        return courseService.getLastEnrollmentDetail(groupId);
+    }
+
     @GetMapping("/course/group/{groupId}/module/{moduleId}/topic/{topicId}/content/{contentId}")
     public ResponseEntity<?> getCourseModuleTopicContent(
             @PathVariable String groupId,

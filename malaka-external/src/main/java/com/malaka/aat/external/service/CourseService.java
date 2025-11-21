@@ -9,11 +9,13 @@ import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.external.clients.MalakaInternalClient;
+import com.malaka.aat.external.dto.course.LastEnrollmentDetail;
 import com.malaka.aat.external.dto.course.external.CourseDto;
 import com.malaka.aat.external.dto.course.external.StudentCourseDetailDto;
 import com.malaka.aat.external.dto.course.external.StudentCourseDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
 import com.malaka.aat.external.dto.topic.TopicDto;
+import com.malaka.aat.external.enumerators.course.CourseContentType;
 import com.malaka.aat.external.enumerators.group.GroupStatus;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentDetailType;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
@@ -252,7 +254,7 @@ public class CourseService {
                             topicMainContent.setIsStarted(1);
                         }
                         topicMainContent.setContentType(t.getContentType());
-                        topicMainContent.setType(StudentCourseDetailDto.MAIN_CONTENT);
+                        topicMainContent.setType(CourseContentType.MAIN_CONTENT.getValue());
                         topicContents.add(topicMainContent);
                         StudentCourseDetailDto.TopicLectureOrPresentationContent topicLecture = new StudentCourseDetailDto.TopicLectureOrPresentationContent();
                         topicLecture.setId(t.getLectureFileId());
@@ -263,7 +265,7 @@ public class CourseService {
                         if (topicDto.getIsStarted() == 1 && contentStartIds.contains(t.getLectureFileId())) {
                             topicLecture.setIsStarted(1);
                         }
-                        topicLecture.setType(StudentCourseDetailDto.LECTURE);
+                        topicLecture.setType(CourseContentType.LECTURE.getValue());
                         topicContents.add(topicLecture);
                         StudentCourseDetailDto.TopicLectureOrPresentationContent topicPresentation = new StudentCourseDetailDto.TopicLectureOrPresentationContent();
                         topicPresentation.setId(t.getLectureFileId());
@@ -274,7 +276,7 @@ public class CourseService {
                         if (topicDto.getIsStarted() == 1 && contentStartIds.contains(t.getPresentationFileId())) {
                             topicPresentation.setIsStarted(1);
                         }
-                        topicPresentation.setType(StudentCourseDetailDto.PRESENTATION);
+                        topicPresentation.setType(CourseContentType.PRESENTATION.getValue());
                         topicContents.add(topicPresentation);
                         StudentCourseDetailDto.TopicTestContent topicTest = new StudentCourseDetailDto.TopicTestContent();
                         topicTest.setId(t.getTestId());
@@ -292,7 +294,7 @@ public class CourseService {
                             }
                         }
                         topicTest.setDurationInMinutes(t.getDurationInMinutes());
-                        topicTest.setType(StudentCourseDetailDto.TEST);
+                        topicTest.setType(CourseContentType.TEST.getValue());
                         topicContents.add(topicTest);
                         topicDto.setContents(topicContents);
                         topicDtos.add(topicDto);
@@ -335,5 +337,26 @@ public class CourseService {
         return malakaInternalClient.getCourseModuleTopicContent(
                 group.getCourseId(),  moduleId, topicId, contentId
         );
+    }
+
+    public BaseResponse getLastEnrollmentDetail(String groupId) {
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException("Group not found with id " + groupId));
+        User currentUser = sessionService.getCurrentUser();
+        Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new NotFoundException("Current user is not a student"));
+        if (!group.getStudents().contains(student)) {
+            throw new BadRequestException("Student does not belong to this group");
+        }
+        StudentEnrollment enrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, group.getCourseId(), group).orElseThrow(() -> new BadRequestException("Corse has not been started yet"));
+        StudentEnrollmentDetail studentEnrollmentDetail = studentEnrollmentDetailRepository.findLastByStudentEnrollmentAndType(enrollment, StudentEnrollmentDetailType.START).orElseThrow(() -> new BadRequestException("Student has not started any task yet"));
+        LastEnrollmentDetail detail = new LastEnrollmentDetail();
+        detail.setTopicId(studentEnrollmentDetail.getTopicId());
+        detail.setModuleId(studentEnrollmentDetail.getModuleId());
+        detail.setContentId(studentEnrollmentDetail.getContentId());
+        detail.setContentType(studentEnrollmentDetail.getContentType().getValue());
+
+        BaseResponse response = new BaseResponse();
+        response.setData(detail);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
     }
 }

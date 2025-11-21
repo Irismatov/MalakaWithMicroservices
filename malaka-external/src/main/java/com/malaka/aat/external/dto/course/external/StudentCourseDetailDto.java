@@ -8,10 +8,6 @@ import java.util.List;
 @Getter
 @Setter
 public class StudentCourseDetailDto extends StudentCourseDto {
-    public static Integer MAIN_CONTENT = 0;
-    public static Integer LECTURE = 1;
-    public static Integer PRESENTATION = 2;
-    public static Integer TEST = 3;
 
 
     private List<Module> modules;

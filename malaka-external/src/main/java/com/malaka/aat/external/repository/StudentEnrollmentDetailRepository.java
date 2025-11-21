@@ -15,6 +15,9 @@ public interface StudentEnrollmentDetailRepository extends JpaRepository<Student
     @Query(value = "from StudentEnrollmentDetail s where s.studentEnrollment = :studentEnrollment and s.isActive = 1")
     Optional<StudentEnrollmentDetail> findLastByStudentEnrollment(StudentEnrollment studentEnrollment);
 
+    @Query(value = "from StudentEnrollmentDetail s where s.studentEnrollment = :studentEnrollment and s.type = :type order by s.instime desc limit 1")
+    Optional<StudentEnrollmentDetail> findLastByStudentEnrollmentAndType(StudentEnrollment studentEnrollment, StudentEnrollmentDetailType type);
+
     @Query(value = "select s.moduleId from StudentEnrollmentDetail s " +
             "where s.studentEnrollment = :studentEnrollment and s.type = :type")
     List<String> findModuleIdsByStudentEnrollment(@Param("studentEnrollment") StudentEnrollment studentEnrollment,
