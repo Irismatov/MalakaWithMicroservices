@@ -13,16 +13,7 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.time.Instant;
 
-/**
- * Global filter for logging all incoming requests and outgoing responses.
- * Provides detailed information about request/response flow through the gateway.
- *
- * Best Practices:
- * - Uses reactive programming model
- * - Logs request/response details for debugging
- * - Measures request processing time
- * - Implements Ordered for filter chain priority
- */
+
 @Slf4j
 @Component
 public class LoggingFilter implements GlobalFilter, Ordered {

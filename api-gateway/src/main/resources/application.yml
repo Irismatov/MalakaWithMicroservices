@@ -15,28 +15,7 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
-
-      # CORS Configuration moved to CorsConfig.java bean
-      # Reactive WebFilter handles CORS at a lower level
-
-      # Route definitions
       routes:
-        # Route for malaka-internal OpenAPI docs
-        - id: malaka-internal-openapi
-          uri: lb://malaka-internal
-          predicates:
-            - Path=/v3/api-docs/malaka-internal
-          filters:
-            - RewritePath=/v3/api-docs/malaka-internal, /v3/api-docs
-
-        # Route for malaka-external OpenAPI docs
-        - id: malaka-external-openapi
-          uri: lb://malaka-external
-          predicates:
-            - Path=/v3/api-docs/malaka-external
-          filters:
-            - RewritePath=/v3/api-docs/malaka-external, /v3/api-docs
-
         # Route to malaka-external service - All external APIs (must be first for priority)
         - id: malaka-external
           uri: lb://malaka-external
@@ -47,7 +26,6 @@ spring:
               args:
                 name: malakaExternalCircuitBreaker
                 fallbackUri: forward:/fallback
-
         # Route to malaka-internal service - Authentication endpoints
         - id: malaka-internal-auth
           uri: lb://malaka-internal
@@ -178,36 +156,6 @@ spring:
                 name: malakaInternalCircuitBreaker
                 fallbackUri: forward:/fallback
 
-        # Route to service-registry
-        - id: service-registry
-          uri: lb://service-registry
-          predicates:
-            - Path=/eureka/**
-          filters:
-            - StripPrefix=1
-
-        # Dynamic routes will be created automatically from Eureka
-        # Example pattern: /SERVICE-NAME/** -> lb://SERVICE-NAME/**
-
-      # Default filters applied to all routes
-      default-filters:
-        - name: Retry
-          args:
-            retries: 3
-            methods: GET,POST
-            series: SERVER_ERROR
-            exceptions: java.io.IOException,java.util.concurrent.TimeoutException
-        - name: CircuitBreaker
-          args:
-            name: defaultCircuitBreaker
-            fallbackUri: forward:/fallback
-        # Rate Limiter (requires Redis) - uncomment when Redis is available
-        # - name: RequestRateLimiter
-        #   args:
-        #     redis-rate-limiter.replenishRate: 10
-        #     redis-rate-limiter.burstCapacity: 20
-        #     redis-rate-limiter.requestedTokens: 1
-
 # Eureka Client Configuration
 eureka:
   client:
@@ -220,78 +168,3 @@ eureka:
     instance-id: ${spring.application.name}:${random.value}
     lease-renewal-interval-in-seconds: 30
     lease-expiration-duration-in-seconds: 90
-
-# Resilience4j Circuit Breaker Configuration
-resilience4j:
-  circuitbreaker:
-    configs:
-      default:
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
-        permitted-number-of-calls-in-half-open-state: 3
-        automatic-transition-from-open-to-half-open-enabled: true
-        wait-duration-in-open-state: 10s
-        failure-rate-threshold: 50
-        event-consumer-buffer-size: 10
-        register-health-indicator: true
-    instances:
-      defaultCircuitBreaker:
-        base-config: default
-      malakaInternalCircuitBreaker:
-        base-config: default
-      malakaExternalCircuitBreaker:
-        base-config: default
-
-  timelimiter:
-    configs:
-      default:
-        timeout-duration: 60s
-      long-running:
-        timeout-duration: 60s
-    instances:
-      defaultCircuitBreaker:
-        base-config: default
-      malakaInternalCircuitBreaker:
-        base-config: long-running
-      malakaExternalCircuitBreaker:
-        base-config: long-running
-
-# Actuator Configuration
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,gateway,circuitbreakers,circuitbreakerevents
-  endpoint:
-    health:
-      show-details: always
-    gateway:
-      enabled: true
-  health:
-    circuitbreakers:
-      enabled: true
-
-# Logging Configuration
-logging:
-  level:
-    org.springframework.cloud.gateway: INFO
-    org.springframework.cloud.gateway.route.RouteDefinitionLocator: INFO
-    reactor.netty.http.client: INFO
-    com.malaka.aat.apigateway: DEBUG
-    root: INFO
-
-# SpringDoc OpenAPI Configuration
-springdoc:
-  api-docs:
-    enabled: true
-    path: /v3/api-docs
-  swagger-ui:
-    enabled: true
-    path: /swagger-ui.html
-    urls:
-      - name: Malaka Internal
-        url: /v3/api-docs/malaka-internal
-      - name: Malaka External
-        url: /v3/api-docs/malaka-external
-    config-url: /v3/api-docs/swagger-config
-  show-actuator: false
