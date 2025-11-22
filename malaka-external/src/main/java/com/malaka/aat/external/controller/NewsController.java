@@ -39,8 +39,11 @@ public class NewsController {
 
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     @GetMapping("/news")
-    public ResponseWithPagination getAll() {
-        return newsService.getAll();
+    public ResponseWithPagination getAll(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        return newsService.getAll(page, size);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
