@@ -2,6 +2,7 @@ package com.malaka.aat.internal.controller;
 
 import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseWithPagination;
+import com.malaka.aat.internal.dto.test.TestCreateDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -64,6 +65,12 @@ public class CourseController {
         return courseService.addSingleModuleToCourse(id, dto);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'METHODIST')")
+    @PostMapping("/course/{id}/addFinalTest")
+    public BaseResponse addFinalTest(@PathVariable String id, @RequestBody @Validated TestCreateDto dto) {
+        return courseService.addTestToCourse(id, dto);
+    }
+
     @Operation(summary = "Kurslar ro'yxatini olish",
             description = "Sahifalash va filtrlash bilan kurslar ro'yxatini olish. ADMIN, SUPER_ADMIN, METHODIST va TEACHER ruxsat etilgan")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'METHODIST', 'TEACHER', 'FACULTY_HEAD')")
@@ -79,6 +86,11 @@ public class CourseController {
     @GetMapping("/courses")
     public BaseResponse getCourses() {
       return courseService.getCoursesWithoutPagination();
+    }
+
+    @GetMapping("/courses/verified")
+    public BaseResponse getVerifiedCourseNames() {
+        return courseService.getVerifiedCourseNames();
     }
 
     @Operation(summary = "Kursni ID bo'yicha olish",
@@ -113,15 +125,6 @@ public class CourseController {
     @GetMapping("/course/name/{id}")
     public BaseResponse getCourseNameById(@PathVariable String id) {
         return courseService.getCourseNameById(id);
-    }
-
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'METHODIST')")
-    @PostMapping("/course/{id}/final-test")
-    public BaseResponse addFinalTest(
-            @PathVariable String id
-
-    ) {
-        return null;
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")

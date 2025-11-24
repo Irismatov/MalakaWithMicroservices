@@ -48,7 +48,6 @@ public class Topic extends BaseEntity {
     @JoinColumn(name = "presentation_file_id", referencedColumnName = "id")
     private File presentationFile;
 
-    // Bidirectional OneToOne relationship with Test
-    @OneToOne(mappedBy = "topic", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY)
     private Test test;
 }

@@ -42,6 +42,9 @@ public class Course extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_student_type_id", referencedColumnName = "id", nullable = false)
     private CourseStudentTypeSpr courseStudentType;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "test_id", referencedColumnName = "id")
+    private Test test;
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Module> modules;
     @OneToMany(mappedBy = "course", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

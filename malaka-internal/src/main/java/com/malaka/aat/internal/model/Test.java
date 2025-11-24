@@ -27,10 +27,6 @@ public class Test extends BaseEntity {
     @Column(name = "duration_in_minutes")
     private Integer durationInMinutes;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "topic_id", referencedColumnName = "id", unique = false)
-    private Topic topic;
-
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestQuestion> questions;
 }

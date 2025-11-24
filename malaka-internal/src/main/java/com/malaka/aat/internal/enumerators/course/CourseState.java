@@ -52,7 +52,7 @@ public enum CourseState {
                 }
             }
             case SENT_TO_FACULTY_HEAD -> {
-                if (!course.getState().equals("008")) {
+                if (!course.getState().equals("008") || course.getTest() == null) {
                     throw new BadRequestException("Can't update course: " + course.getId() + " to a state: " + state);
                 }
             }

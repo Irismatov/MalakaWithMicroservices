@@ -9,10 +9,12 @@ import com.malaka.aat.core.exception.custom.*;
 import com.malaka.aat.core.test.TestDto;
 import com.malaka.aat.core.test.TestMetaData;
 import com.malaka.aat.core.util.ResponseUtil;
+import com.malaka.aat.internal.dto.test.TestCreateDto;
 import com.malaka.aat.internal.enumerators.topic.TopicContentType;
-import com.malaka.aat.internal.repository.TopicRepository;
+import com.malaka.aat.internal.repository.*;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.FileSystemResource;
@@ -39,9 +41,6 @@ import com.malaka.aat.internal.enumerators.model.ModuleState;
 import com.malaka.aat.internal.model.*;
 import com.malaka.aat.internal.model.Module;
 import com.malaka.aat.internal.model.spr.*;
-import com.malaka.aat.internal.repository.CourseRepository;
-import com.malaka.aat.internal.repository.ModuleRepository;
-import com.malaka.aat.internal.repository.UserRepository;
 import com.malaka.aat.internal.repository.spr.DepartmentSprRepository;
 import com.malaka.aat.internal.repository.spr.FacultySprRepository;
 import com.malaka.aat.internal.service.spr.LangSprService;
@@ -58,6 +57,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CourseService {
@@ -72,6 +73,9 @@ public class CourseService {
     private final StateHMetService stateHMetService;
     private final SessionService sessionService;
     private final LangSprService langSprService;
+    private final TestRepository testRepository;
+    private final TestQuestionRepository testQuestionRepository;
+    private final TestQuestionRepository testQuestionOptionRepository;
     private final com.malaka.aat.internal.service.spr.CourseFormatSprService courseFormatSprService;
     private final com.malaka.aat.internal.service.spr.CourseTypeSprService courseTypeSprService;
     private final com.malaka.aat.internal.service.spr.CourseStudentTypeSprService courseStudentTypeSprService;
@@ -484,6 +488,14 @@ public class CourseService {
         return response;
     }
 
+    public BaseResponse getVerifiedCourseNames() {
+        BaseResponse response = new BaseResponse();
+        List<CourseNameAndIdDto> namesOfVerifiedCourses = courseRepository.getNamesOfVerifiedCourses();
+        response.setData(namesOfVerifiedCourses);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
+    }
+
     public BaseResponse getCoursesForStudents(List<String> ids) {
         BaseResponse response = new BaseResponse();
         List<Course> courses = courseRepository.findByIds(ids);
@@ -617,5 +629,111 @@ public class CourseService {
         }).toList();
         testDto.setQuestions(questionList);
         return testDto;
+    }
+
+    @Transactional
+    public BaseResponse addTestToCourse(String id, TestCreateDto dto) {
+        Course course = courseRepository.findById(id).orElseThrow(() -> new NotFoundException("Course not found with id " + id));
+
+        if (course.getState().equals("005") || course.getState().equals("006")) {
+            throw new BadRequestException("Course test can't be added at this state");
+        }
+
+        Test courseTest = createCourseTest(dto);
+        course.setTest(courseTest);
+        courseRepository.save(course);
+        BaseResponse response = new BaseResponse();
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
+    }
+
+
+    @Transactional
+    public Test createCourseTest(TestCreateDto testCreateDto) {
+
+
+        com.malaka.aat.internal.model.Test test = new com.malaka.aat.internal.model.Test();
+        test.setAttemptLimit(testCreateDto.getAttemptLimit());
+        test.setDurationInMinutes(testCreateDto.getDurationInMinutes());
+
+        List<com.malaka.aat.internal.model.TestQuestion> testQuestions = new ArrayList<>();
+
+        for (com.malaka.aat.internal.dto.test.TestQuestionCreateDto questionDto : testCreateDto.getQuestions()) {
+            com.malaka.aat.internal.model.TestQuestion testQuestion = new com.malaka.aat.internal.model.TestQuestion();
+            testQuestion.setQuestionText(questionDto.getQuestionText());
+            // Defensive null check: default to 0 if hasImage is null
+            testQuestion.setHasImage(questionDto.getHasImage() != null ? questionDto.getHasImage() : (short) 0);
+            testQuestion.setTest(test);
+
+            // Extract file ID from imgUrl if present
+            if (questionDto.getImgUrl() != null && !questionDto.getImgUrl().isEmpty()) {
+                String fileId = extractFileIdFromUrl(questionDto.getImgUrl());
+                if (fileId != null) {
+                    try {
+                        File questionImageFile = fileService.getFileById(fileId);
+                        testQuestion.setQuestionImage(questionImageFile);
+                    } catch (NotFoundException e) {
+                        log.warn("Question image file not found with id: {}", fileId);
+                    }
+                }
+            }
+
+            // Process options
+            List<com.malaka.aat.internal.model.QuestionOption> questionOptions = new ArrayList<>();
+
+            for (com.malaka.aat.internal.dto.test.TestQuestionOptionCreateDto optionDto : questionDto.getOptions()) {
+                com.malaka.aat.internal.model.QuestionOption questionOption = new com.malaka.aat.internal.model.QuestionOption();
+                questionOption.setOptionText(optionDto.getOptionText());
+                // Defensive null checks: default to 0 if null
+                questionOption.setIsCorrect(optionDto.getIsCorrect() != null ? optionDto.getIsCorrect() : (short) 0);
+                questionOption.setHasImage(optionDto.getHasImage() != null ? optionDto.getHasImage() : (short) 0);
+                questionOption.setQuestion(testQuestion);
+
+                // Extract file ID from imgUrl if present
+                if (optionDto.getImgUrl() != null && !optionDto.getImgUrl().isEmpty()) {
+                    String fileId = extractFileIdFromUrl(optionDto.getImgUrl());
+                    if (fileId != null) {
+                        try {
+                            File optionImageFile = fileService.getFileById(fileId);
+                            questionOption.setImageFile(optionImageFile);
+                        } catch (NotFoundException e) {
+                            log.warn("Option image file not found with id: {}", fileId);
+                        }
+                    }
+                }
+
+                questionOptions.add(questionOption);
+            }
+
+            testQuestion.setOptions(questionOptions);
+            testQuestions.add(testQuestion);
+        }
+
+        test.setQuestions(testQuestions);
+        // Save test with all questions and options (cascade will save questions and options)
+
+        return testRepository.save(test);
+    }
+
+    private String extractFileIdFromUrl(String imgUrl) {
+        if (imgUrl == null || imgUrl.isEmpty()) {
+            return null;
+        }
+
+        // Pattern 1: Full URL - http://localhost:8585/api/file/{fileId}
+        if (imgUrl.contains("/api/file/")) {
+            String[] parts = imgUrl.split("/api/file/");
+            if (parts.length == 2) {
+                return parts[1].trim();
+            }
+        }
+
+        // Pattern 2: Just the file ID (UUID format)
+        // UUIDs are typically 36 characters with dashes
+        if (imgUrl.length() >= 36 && imgUrl.contains("-")) {
+            return imgUrl.trim();
+        }
+
+        return null;
     }
 }

@@ -386,15 +386,14 @@ public class TopicService {
         validateModuleStateForUploadOrUpdate(topic.getModule());
 
 
-        if (topic.getTest() != null) {
-            Test test = topic.getTest();
-            test.setIsDeleted((short) 1);
-            testRepository.save(test);
-        }
+//        if (topic.getTest() != null) {
+//            Test test = topic.getTest();
+//            test.setIsDeleted((short) 1);
+//            testRepository.save(test);
+//        }
 
         // Create test entity
         com.malaka.aat.internal.model.Test test = new com.malaka.aat.internal.model.Test();
-        test.setTopic(topic);
         test.setAttemptLimit(testCreateDto.getAttemptLimit());
         test.setDurationInMinutes(testCreateDto.getDurationInMinutes());
 
@@ -455,8 +454,9 @@ public class TopicService {
         // Save test with all questions and options (cascade will save questions and options)
         com.malaka.aat.internal.model.Test savedTest = testRepository.save(test);
 
-        savedTest.getTopic().setTest(savedTest);
-        TopicDto topicDto = new TopicDto(savedTest.getTopic());
+        topic.setTest(savedTest);
+        Topic savedTopic = topicRepository.save(topic);
+        TopicDto topicDto = new TopicDto(savedTopic);
         response.setData(topicDto);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
 
