@@ -15,7 +15,7 @@ import com.malaka.aat.external.dto.course.external.StudentCourseDetailDto;
 import com.malaka.aat.external.dto.course.external.StudentCourseDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
 import com.malaka.aat.external.dto.topic.TopicDto;
-import com.malaka.aat.external.enumerators.course.CourseContentType;
+import com.malaka.aat.core.enumerators.CourseContentType;
 import com.malaka.aat.external.enumerators.group.GroupStatus;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentDetailType;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;

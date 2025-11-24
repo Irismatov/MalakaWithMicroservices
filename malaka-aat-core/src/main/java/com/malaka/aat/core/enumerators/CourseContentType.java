@@ -1,4 +1,4 @@
-package com.malaka.aat.external.enumerators.course;
+package com.malaka.aat.core.enumerators;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

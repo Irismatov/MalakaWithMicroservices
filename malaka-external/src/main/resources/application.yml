@@ -71,7 +71,7 @@ clients:
       lang-id: 1
       transaction-id: 3
       is_consent: Y
-      is_photo: Y
+      is_photo: N
       sender: M
     token:
       url: https://iskm.egov.uz:9444

@@ -1,7 +1,6 @@
 package com.malaka.aat.external.model;
 
-import com.malaka.aat.external.dto.course.external.StudentCourseDetailDto;
-import com.malaka.aat.external.enumerators.course.CourseContentType;
+import com.malaka.aat.core.enumerators.CourseContentType;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentDetailType;
 import jakarta.persistence.*;
 import lombok.Getter;

@@ -4,6 +4,7 @@ import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.Pagination;
 import com.malaka.aat.core.dto.ResponseStatus;
 import com.malaka.aat.core.dto.ResponseWithPagination;
+import com.malaka.aat.core.enumerators.CourseContentType;
 import com.malaka.aat.core.exception.custom.*;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.internal.enumerators.topic.TopicContentType;
@@ -518,6 +519,7 @@ public class CourseService {
         Module module = modules.stream().filter(m -> m.getId().equals(moduleId)).findFirst().orElseThrow(() -> new NotFoundException("Module not found with id: " + moduleId));
         List<Topic> topics = module.getTopics();
         Topic topic = topics.stream().filter(t -> t.getId().equals(topicId)).findFirst().orElseThrow(() -> new NotFoundException("Topic not found with id: " + topicId));
+        HttpHeaders headers = new HttpHeaders();
         Path path;
         String filename;
         MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
@@ -525,6 +527,7 @@ public class CourseService {
             File contentFile = topic.getContentFile();
             path = Paths.get(contentFile.getPath());
             filename = contentFile.getOriginalName();
+            headers.add("Custom-Content-Type", String.valueOf(CourseContentType.MAIN_CONTENT.getValue()));
             if (contentFile.getContentType() != null && !contentFile.getContentType().isEmpty()) {
                 mediaType = MediaType.parseMediaType(contentFile.getContentType());
             } else if (topic.getContentType() == TopicContentType.VIDEO) {
@@ -538,20 +541,22 @@ public class CourseService {
             mediaType = MediaType.APPLICATION_PDF;
             path = Paths.get(topic.getLectureFile().getPath());
             filename =  topic.getLectureFile().getOriginalName();
+            headers.add("Custom-Content-Type", String.valueOf(CourseContentType.LECTURE.getValue()));
         } else if (topic.getPresentationFile().getId().equals(contentId)) {
             mediaType = MediaType.APPLICATION_PDF;
             path = Paths.get(topic.getPresentationFile().getPath());
             filename =  topic.getPresentationFile().getOriginalName();
+            headers.add("Custom-Content-Type", String.valueOf(CourseContentType.PRESENTATION.getValue()));
         } else {
             throw new NotFoundException("Content not found with id " + contentId);
         }
 
         Resource resource = new FileSystemResource(path);
-
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
 
         return ResponseEntity.ok()
                 .contentType(mediaType)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .headers(headers)
                 .body(resource);
     }
 }
