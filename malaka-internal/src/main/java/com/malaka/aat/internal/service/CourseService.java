@@ -527,7 +527,7 @@ public class CourseService {
             File contentFile = topic.getContentFile();
             path = Paths.get(contentFile.getPath());
             filename = contentFile.getOriginalName();
-            headers.add("Custom-Content-Type", String.valueOf(CourseContentType.MAIN_CONTENT.getValue()));
+            headers.add(HttpHeaders.CONTENT_LANGUAGE, String.valueOf(CourseContentType.MAIN_CONTENT.getValue()));
             if (contentFile.getContentType() != null && !contentFile.getContentType().isEmpty()) {
                 mediaType = MediaType.parseMediaType(contentFile.getContentType());
             } else if (topic.getContentType() == TopicContentType.VIDEO) {
@@ -541,12 +541,12 @@ public class CourseService {
             mediaType = MediaType.APPLICATION_PDF;
             path = Paths.get(topic.getLectureFile().getPath());
             filename =  topic.getLectureFile().getOriginalName();
-            headers.add("Custom-Content-Type", String.valueOf(CourseContentType.LECTURE.getValue()));
+            headers.add(HttpHeaders.CONTENT_LANGUAGE, String.valueOf(CourseContentType.LECTURE.getValue()));
         } else if (topic.getPresentationFile().getId().equals(contentId)) {
             mediaType = MediaType.APPLICATION_PDF;
             path = Paths.get(topic.getPresentationFile().getPath());
             filename =  topic.getPresentationFile().getOriginalName();
-            headers.add("Custom-Content-Type", String.valueOf(CourseContentType.PRESENTATION.getValue()));
+            headers.add(HttpHeaders.CONTENT_LANGUAGE, String.valueOf(CourseContentType.PRESENTATION.getValue()));
         } else {
             throw new NotFoundException("Content not found with id " + contentId);
         }

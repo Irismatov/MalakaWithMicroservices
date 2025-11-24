@@ -7,7 +7,7 @@ spring:
   main:
     allow-bean-definition-overriding: true
   profiles:
-    active: local
+    active: test
   jpa:
     hibernate:
       ddl-auto: update
