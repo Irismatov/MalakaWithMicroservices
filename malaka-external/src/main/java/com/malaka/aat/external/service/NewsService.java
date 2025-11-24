@@ -54,7 +54,10 @@ public class NewsService {
         news.setImageFile(file);
         newsRepository.save(news);
 
+        return getDefaultPaginationResponse();
+    }
 
+    private ResponseWithPagination getDefaultPaginationResponse() {
         // response
         ResponseWithPagination response = new ResponseWithPagination();
         PageRequest pageRequest = PageRequest.of(0, 10);
@@ -92,29 +95,38 @@ public class NewsService {
         }
 
         News saved = newsRepository.save(news);
-        NewsListItemDto newsListItemDto = convertEntityToListItemDto(saved);
-        ResponseWithPagination response = new ResponseWithPagination();
-        response.setData(newsListItemDto);
-        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
-        return response;
+
+        return getDefaultPaginationResponse();
     }
 
     @Transactional
     public ResponseWithPagination delete(String id) {
-        ResponseWithPagination response = new ResponseWithPagination();
         newsRepository.deleteById(id);
+        return getDefaultPaginationResponse();
+    }
 
-
+    public ResponseWithPagination getAll(int page, int size) {
+        ResponseWithPagination response = new ResponseWithPagination();
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<News> pageList = newsRepository.findAll(pageRequest);
+        List<NewsListItemDto> list = pageList.getContent().stream().map(this::convertEntityToListItemDto).toList();
+        Pagination pagination = new Pagination();
+        pagination.setCurrentPage(page);
+        pagination.setTotalElements(pageList.getTotalElements());
+        pagination.setTotalPages(pageList.getTotalPages());
+        pagination.setNumberOfElements(pageList.getNumberOfElements());
+        response.setPagination(pagination);
+        response.setData(list);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
     }
 
-    public ResponseWithPagination getAll() {
-        return null;
-    }
-
     public BaseResponse getDetail(String id) {
-        return null;
+        News news = newsRepository.findById(id).orElseThrow(() -> new NotFoundException("News not found with id: " + id));
+        NewsListItemDto newsListItemDto = convertEntityToListItemDto(news);
+        BaseResponse response = new BaseResponse();
+        response.setData(newsListItemDto);
+        return response;
     }
 
     public NewsListItemDto convertEntityToListItemDto(News entity) {

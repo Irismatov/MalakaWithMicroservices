@@ -11,15 +11,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Fallback controller for handling circuit breaker fallbacks.
- * Provides user-friendly error responses when services are unavailable.
- *
- * Best Practices:
- * - Returns meaningful error messages
- * - Uses appropriate HTTP status codes
- * - Logs fallback activations for monitoring
- */
+
 @Slf4j
 @RestController
 @RequestMapping("/fallback")
