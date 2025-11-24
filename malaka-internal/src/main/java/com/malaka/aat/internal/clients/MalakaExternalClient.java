@@ -1,5 +1,6 @@
 package com.malaka.aat.internal.clients;
 
+import com.malaka.aat.core.dao.CourseLastGroupOrder;
 import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.internal.dto.group.GroupCreateDto;
@@ -11,6 +12,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * Feign Client for communicating with malaka-external service.
@@ -58,4 +61,7 @@ public interface MalakaExternalClient {
 
     @DeleteMapping("/api/external/group/{id}")
     BaseResponse deleteGroup(@PathVariable String id);
+
+    @GetMapping("/api/external/group/course/lastGroupOrders")
+    List<CourseLastGroupOrder> getCourseLastGroupOrders(@RequestParam List<String> courseIds);
 }

@@ -1,15 +1,17 @@
 package com.malaka.aat.external.controller;
 
+import com.malaka.aat.core.dao.CourseLastGroupOrderProjection;
 import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.external.dto.group.GroupCreateDto;
 import com.malaka.aat.external.dto.group.GroupUpdateDto;
 import com.malaka.aat.external.service.GroupService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -22,6 +24,12 @@ public class GroupController {
     @PostMapping("/group")
     public BaseResponse createGroup(@RequestBody @Validated GroupCreateDto dto) {
         return groupService.save(dto);
+    }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @GetMapping("/group/course/lastGroupOrders")
+    public List<CourseLastGroupOrderProjection> getCourseLastGroupOrders(@RequestParam List<String> courseIds) {
+        return groupService.getCourseLastGroupOrders(courseIds);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")

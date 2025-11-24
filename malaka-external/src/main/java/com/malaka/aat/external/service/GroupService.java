@@ -1,6 +1,7 @@
 package com.malaka.aat.external.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.malaka.aat.core.dao.CourseLastGroupOrderProjection;
 import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.ResponseStatus;
 import com.malaka.aat.core.dto.ResponseWithPagination;
@@ -29,10 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 
 @RequiredArgsConstructor
@@ -75,8 +73,7 @@ public class GroupService {
         group.setStartDate(dto.getStartDate().atStartOfDay());
         group.setEndDate(dto.getEndDate().atTime(23,  59, 59, 999999999));
         group.setStatus(GroupStatus.CREATED);
-        group.setName(dto.getName());
-        group.setOrder(getOrderOfGroup(courseId));
+        group.setOrder(getOrderOfNewGroup(courseId));
         Group save = groupRepository.save(group);
         GroupDto groupDto = convertEntityToDto(save);
         response.setData(groupDto);
@@ -84,7 +81,12 @@ public class GroupService {
         return response;
     }
 
-    public Integer getOrderOfGroup(String courseId) {
+    public List<CourseLastGroupOrderProjection> getCourseLastGroupOrders(List<String> courseIds) {
+        List<CourseLastGroupOrderProjection> courseLastGroupOrders = groupRepository.findCourseLastGroupOrders(courseIds);
+        return courseLastGroupOrders;
+    }
+
+    public Integer getOrderOfNewGroup(String courseId) {
         Optional<Group> groupOptional = groupRepository.findLastCreatedGroupByCourseId(courseId);
         if (groupOptional.isPresent()) {
             Group group = groupOptional.get();
@@ -127,7 +129,6 @@ public class GroupService {
     public GroupDto convertEntityToDto(Group group) {
         GroupDto groupDto = new GroupDto();
         groupDto.setId(group.getId());
-        groupDto.setName(group.getName());
         BaseResponse courseById = malakaInternalClient.getCourseById(group.getCourseId());
         CourseDto courseDto = objectMapper.convertValue(courseById.getData(), CourseDto.class);
         groupDto.setCourseId(group.getCourseId());
@@ -153,11 +154,7 @@ public class GroupService {
             return studentDto;
         }).toList();
         groupDto.setStudents(studentDtoList);
-        if (group.getName() != null) {
-            groupDto.setName(group.getName());
-        } else {
-            groupDto.setName(group.getOrder() + "-guruh");
-        }
+        groupDto.setName(group.getOrder() + "-guruh");
         return groupDto;
     }
 

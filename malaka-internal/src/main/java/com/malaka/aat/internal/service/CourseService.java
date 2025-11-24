@@ -1,5 +1,7 @@
 package com.malaka.aat.internal.service;
 
+import com.malaka.aat.core.dao.CourseLastGroupOrder;
+import com.malaka.aat.core.dao.CourseLastGroupOrderProjection;
 import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.Pagination;
 import com.malaka.aat.core.dto.ResponseStatus;
@@ -9,10 +11,10 @@ import com.malaka.aat.core.exception.custom.*;
 import com.malaka.aat.core.test.TestDto;
 import com.malaka.aat.core.test.TestMetaData;
 import com.malaka.aat.core.util.ResponseUtil;
+import com.malaka.aat.internal.clients.MalakaExternalClient;
 import com.malaka.aat.internal.dto.test.TestCreateDto;
 import com.malaka.aat.internal.enumerators.topic.TopicContentType;
 import com.malaka.aat.internal.repository.*;
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,21 +23,16 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.malaka.aat.internal.dto.course.*;
-import com.malaka.aat.internal.dto.module.ModuleDto;
 import com.malaka.aat.internal.enumerators.course.CourseState;
 import com.malaka.aat.internal.enumerators.model.ModuleState;
 import com.malaka.aat.internal.model.*;
@@ -45,14 +42,11 @@ import com.malaka.aat.internal.repository.spr.DepartmentSprRepository;
 import com.malaka.aat.internal.repository.spr.FacultySprRepository;
 import com.malaka.aat.internal.service.spr.LangSprService;
 import com.malaka.aat.internal.util.FileValidationUtil;
-import com.malaka.aat.internal.util.ServiceUtil;
 
-import javax.print.attribute.standard.Media;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -87,6 +81,8 @@ public class CourseService {
     private TopicRepository topicRepository;
     @Autowired
     private StateHModuleService stateHModuleService;
+    @Autowired
+    private MalakaExternalClient malakaExternalClient;
 
     @Transactional
     public BaseResponse save(CourseCreateDto dto) {
@@ -490,7 +486,17 @@ public class CourseService {
 
     public BaseResponse getVerifiedCourseNames() {
         BaseResponse response = new BaseResponse();
-        List<CourseNameAndIdDto> namesOfVerifiedCourses = courseRepository.getNamesOfVerifiedCourses();
+        List<CourseNameAndIdDtoAndNewGroupName> namesOfVerifiedCourses = courseRepository.getNamesOfVerifiedCourses();
+        List<String> ids = namesOfVerifiedCourses.stream().map(CourseNameAndIdDtoAndNewGroupName::getId).toList();
+        List<CourseLastGroupOrder> courseLastGroupOrders = malakaExternalClient.getCourseLastGroupOrders(ids);
+        courseLastGroupOrders.forEach(courseLastGroupOrder -> {
+            Optional<CourseNameAndIdDtoAndNewGroupName> first = namesOfVerifiedCourses.stream().filter(e -> e.getId().equals(courseLastGroupOrder.getCourseId())).findFirst();
+            if (first.isPresent()) {
+                int newOrder = courseLastGroupOrder.getMaxOrderNumber() + 1;
+                first.get().setGroupName(newOrder + "-guruh");
+            }
+        });
+
         response.setData(namesOfVerifiedCourses);
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;

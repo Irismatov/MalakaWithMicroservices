@@ -7,12 +7,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class CourseNameAndIdDto {
+public class CourseNameAndIdDtoAndNewGroupName {
     private String id;
     private String name;
+    private String groupName;
 
-    public CourseNameAndIdDto(String id, String name) {
+    public CourseNameAndIdDtoAndNewGroupName(String id, String name) {
         this.id = id;
         this.name = name;
+        this.groupName = "1-guruh";
     }
 }

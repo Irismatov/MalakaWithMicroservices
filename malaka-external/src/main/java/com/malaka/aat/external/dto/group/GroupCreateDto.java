@@ -26,6 +26,4 @@ public class GroupCreateDto {
     @Size(min = 5, max = 50, message = "Course must have 5-50 characters")
     @NotEmpty(message = "Course id must be provided")
     private String courseId;
-    @Size(min = 3, max = 100, message = "Group name must be between 3 and 100 characters")
-    private String name;
 }

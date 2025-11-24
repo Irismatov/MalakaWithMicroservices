@@ -21,8 +21,6 @@ public class Group extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", length = 50)
     private String id;
-    @Column(name = "name", length = 200)
-    private String name;
     @Column(name = "order_number")
     private Integer order;
     @Column(name = "course_id",  length = 50, nullable = false)

@@ -1,9 +1,7 @@
 package com.malaka.aat.internal.repository;
 
-import com.malaka.aat.internal.dto.course.CourseNameAndIdDto;
-import jakarta.validation.constraints.Size;
+import com.malaka.aat.internal.dto.course.CourseNameAndIdDtoAndNewGroupName;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -79,6 +77,6 @@ public interface CourseRepository extends JpaRepository<Course, String>, JpaSpec
     @Query("FROM Course c WHERE c.state != '005'")
     List<Course> findAllNotCancelledCourses();
 
-    @Query("select new com.malaka.aat.internal.dto.course.CourseNameAndIdDto(c.id, c.name) from Course c where c.state = '006'")
-    List<CourseNameAndIdDto> getNamesOfVerifiedCourses();
+    @Query("select new com.malaka.aat.internal.dto.course.CourseNameAndIdDtoAndNewGroupName(c.id, c.name) from Course c where c.state = '006'")
+    List<CourseNameAndIdDtoAndNewGroupName> getNamesOfVerifiedCourses();
 }

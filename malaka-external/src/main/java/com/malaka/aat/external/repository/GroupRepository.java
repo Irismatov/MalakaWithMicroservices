@@ -1,6 +1,7 @@
 package com.malaka.aat.external.repository;
 
 
+import com.malaka.aat.core.dao.CourseLastGroupOrderProjection;
 import com.malaka.aat.external.model.Group;
 import com.malaka.aat.external.model.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,11 +10,10 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 public interface GroupRepository extends JpaRepository<Group, String> {
 
-    @Query(value = "from Group g where g.courseId = :courseId order by g.instime desc limit 1")
+    @Query(value = " select * from GROUPS g where g.course_id = :courseId order by g.instime desc limit 1", nativeQuery = true)
     Optional<Group> findLastCreatedGroupByCourseId(String courseId);
 
     List<Group> findByStudentsContains(Student student);
@@ -39,4 +39,7 @@ public interface GroupRepository extends JpaRepository<Group, String> {
 
 
     List<Group> findByStudentsContainsAndCourseId(Student student, String id);
+
+    @Query(value = "select g.course_id AS courseId, MAX(g.order_number) AS maxOrderNumber from GROUPS g where g.course_id in :courseIds group by g.course_id", nativeQuery = true)
+    List<CourseLastGroupOrderProjection>  findCourseLastGroupOrders(List<String> courseIds);
 }
