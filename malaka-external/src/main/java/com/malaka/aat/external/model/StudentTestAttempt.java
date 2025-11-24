@@ -1,11 +1,15 @@
 package com.malaka.aat.external.model;
 
 
+import com.malaka.aat.external.enumerators.TestAttemptType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -25,6 +29,8 @@ public class StudentTestAttempt extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", nullable = false)
     private Group group;
+    @Column(name = "module_id", nullable = false, length = 50)
+    private String moduleId;
     @Column(name = "topic_id", nullable = false, length = 50)
     private String topicId;
     @Column(name = "test_id", nullable = false, length = 50)
@@ -39,4 +45,11 @@ public class StudentTestAttempt extends BaseEntity {
     private Integer correctAnswerPercentage;
     @Column(name = "total_questions", nullable = false)
     private Integer totalQuestions;
+    @Enumerated(EnumType.ORDINAL)
+    private TestAttemptType type;
+    @Column(name = "end_time")
+    private LocalDateTime endTime;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "testAttempt")
+    private List<StudentTestAttemptDetail> details;
 }

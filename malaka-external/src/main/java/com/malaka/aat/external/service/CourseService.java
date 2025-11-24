@@ -7,8 +7,10 @@ import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.core.exception.custom.BadRequestException;
 import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
+import com.malaka.aat.core.test.TestMetaData;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.external.clients.MalakaInternalClient;
+import com.malaka.aat.external.dto.course.CourseTestContentDto;
 import com.malaka.aat.external.dto.course.LastEnrollmentDetail;
 import com.malaka.aat.external.dto.course.external.CourseDto;
 import com.malaka.aat.external.dto.course.external.StudentCourseDetailDto;
@@ -16,6 +18,7 @@ import com.malaka.aat.external.dto.course.external.StudentCourseDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
 import com.malaka.aat.external.dto.topic.TopicDto;
 import com.malaka.aat.core.enumerators.CourseContentType;
+import com.malaka.aat.external.enumerators.TestAttemptType;
 import com.malaka.aat.external.enumerators.group.GroupStatus;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentDetailType;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
@@ -26,10 +29,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -282,11 +288,13 @@ public class CourseService {
                         topicTest.setId(t.getTestId());
                         topicTest.setTotalAttempts(t.getAttemptLimit());
                         topicTest.setQuestionCount(t.getQuestionCount());
+                        if (contentStartIds.contains(t.getTestId())) {
+                            topicTest.setIsStarted(1);
+                        }
                         List<StudentTestAttempt> studentAttempts = studentTestAttemptRepository
                                 .findByStudentAndGroupAndTestId(student, group, t.getTestId());
                         if (topicDto.getIsStarted() == 1 && !studentAttempts.isEmpty()) {
                             topicTest.setIsAttempted(1);
-                            topicTest.setIsStarted(1);
                             if (studentAttempts.stream().filter(sa -> sa.getIsSuccess() == 1).findFirst().isPresent()) {
                                 topicTest.setIsFinished(1);
                                 moduleDto.setIsFinished(1);
@@ -312,7 +320,7 @@ public class CourseService {
         return malakaInternalClient.getCourses();
     }
 
-    public ResponseEntity<?> getCourseModuleTopicContent(String groupId, String moduleId, String topicId, String contentId) {
+    public ResponseEntity<?> getCourseModuleTopicContent(String groupId, String moduleId, String topicId, String contentId) throws IOException {
 
         Group group = groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException("Group not found with id " + groupId));
         User currentUser = sessionService.getCurrentUser();
@@ -337,9 +345,50 @@ public class CourseService {
             throw new  BadRequestException("Student is not eligible to get the content");
         }
 
-        return malakaInternalClient.getCourseModuleTopicContent(
-                group.getCourseId(),  moduleId, topicId, contentId
+        ResponseEntity<byte[]> responseFromInternal = malakaInternalClient.getCourseModuleTopicContent(
+                group.getCourseId(), moduleId, topicId, contentId
         );
+        MediaType contentType = responseFromInternal.getHeaders().getContentType();
+        if (contentType != null && !contentType.isCompatibleWith(MediaType.APPLICATION_JSON)) {
+            return responseFromInternal;
+        }
+        TestMetaData testMetaData = objectMapper.readValue(responseFromInternal.getBody(), TestMetaData.class);
+        CourseTestContentDto courseTestContentDto = convertTestMetaDataToCourseTestContentDto(testMetaData, group, student, moduleId, topicId);
+        return ResponseEntity.ok()
+                .contentType(responseFromInternal.getHeaders().getContentType())
+                .headers(responseFromInternal.getHeaders())
+                .body(courseTestContentDto);
+    }
+
+    private CourseTestContentDto convertTestMetaDataToCourseTestContentDto(
+            TestMetaData testMetaData,
+            Group group,
+            Student student,
+            String moduleId,
+            String topicId
+    ) {
+        CourseTestContentDto courseTestContentDto = new CourseTestContentDto();
+        courseTestContentDto.setId(testMetaData.getId());
+        courseTestContentDto.setDuration(testMetaData.getDuration());
+        courseTestContentDto.setAttemptLimit(testMetaData.getAttemptLimit());
+        courseTestContentDto.setQuestionCount(testMetaData.getQuestionCount());
+        courseTestContentDto.setPassScore(70);
+
+        List<StudentTestAttempt> testAttempts = studentTestAttemptRepository.findByGroupAndStudentAndModuleIdAndTopicIdAndTestIdAndType(
+                group, student, moduleId, topicId, testMetaData.getId(), TestAttemptType.TOPIC_TEST
+        );
+        courseTestContentDto.setAttemptsLeft(testMetaData.getAttemptLimit() - testAttempts.size());
+        List<CourseTestContentDto.TestAttempt> attemptList = testAttempts.stream().map(e -> {
+            CourseTestContentDto.TestAttempt attempt = new CourseTestContentDto.TestAttempt();
+            attempt.setId(e.getId());
+            attempt.setTime(e.getEndTime());
+            attempt.setResult(e.getCorrectAnswerPercentage());
+            attempt.setOrder(e.getAttemptNumber());
+            attempt.setIsSuccess(e.getIsSuccess());
+            return attempt;
+        }).sorted(Comparator.comparing(CourseTestContentDto.TestAttempt::getOrder)).toList();
+        courseTestContentDto.setAttempts(attemptList);
+        return courseTestContentDto;
     }
 
     public BaseResponse getLastEnrollmentDetail(String groupId) {

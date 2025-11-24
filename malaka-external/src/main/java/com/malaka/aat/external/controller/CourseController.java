@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RequiredArgsConstructor
 @RequestMapping("/api/external")
 @RestController
@@ -46,7 +48,7 @@ public class CourseController {
             @PathVariable String moduleId,
             @PathVariable String topicId,
             @PathVariable String contentId
-    ) {
+    ) throws IOException {
         return courseService.getCourseModuleTopicContent(groupId, moduleId, topicId, contentId);
     }
 }

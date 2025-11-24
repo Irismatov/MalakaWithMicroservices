@@ -6,6 +6,8 @@ import com.malaka.aat.core.dto.ResponseStatus;
 import com.malaka.aat.core.dto.ResponseWithPagination;
 import com.malaka.aat.core.enumerators.CourseContentType;
 import com.malaka.aat.core.exception.custom.*;
+import com.malaka.aat.core.test.TestDto;
+import com.malaka.aat.core.test.TestMetaData;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.internal.enumerators.topic.TopicContentType;
 import com.malaka.aat.internal.repository.TopicRepository;
@@ -46,6 +48,7 @@ import com.malaka.aat.internal.service.spr.LangSprService;
 import com.malaka.aat.internal.util.FileValidationUtil;
 import com.malaka.aat.internal.util.ServiceUtil;
 
+import javax.print.attribute.standard.Media;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -536,27 +539,83 @@ public class CourseService {
             } else if (topic.getContentType() == TopicContentType.AUDIO) {
                 mediaType = MediaType.parseMediaType("audio/*");
             }
+            Resource resource = new FileSystemResource(path);
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
 
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .headers(headers)
+                    .body(resource);
         } else if (topic.getLectureFile().getId().equals(contentId)) {
             mediaType = MediaType.APPLICATION_PDF;
             path = Paths.get(topic.getLectureFile().getPath());
             filename =  topic.getLectureFile().getOriginalName();
             headers.add(HttpHeaders.CONTENT_LANGUAGE, String.valueOf(CourseContentType.LECTURE.getValue()));
+            Resource resource = new FileSystemResource(path);
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .headers(headers)
+                    .body(resource);
+
         } else if (topic.getPresentationFile().getId().equals(contentId)) {
             mediaType = MediaType.APPLICATION_PDF;
             path = Paths.get(topic.getPresentationFile().getPath());
             filename =  topic.getPresentationFile().getOriginalName();
             headers.add(HttpHeaders.CONTENT_LANGUAGE, String.valueOf(CourseContentType.PRESENTATION.getValue()));
-        } else {
+            Resource resource = new FileSystemResource(path);
+            headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .headers(headers)
+                    .body(resource);
+
+
+        } else if (topic.getTest().getId().equals(contentId)) {
+            mediaType = MediaType.APPLICATION_JSON;
+            headers.add(HttpHeaders.CONTENT_LANGUAGE, String.valueOf(CourseContentType.TEST.getValue()));
+            Test test = topic.getTest();
+            TestMetaData testMetaData = convertTestToMetaData(test);
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .headers(headers)
+                    .body(testMetaData);
+        }
+        else {
             throw new NotFoundException("Content not found with id " + contentId);
         }
+    }
 
-        Resource resource = new FileSystemResource(path);
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+    private TestMetaData convertTestToMetaData(Test test) {
+        TestMetaData testMetaData = new TestMetaData();
+        testMetaData.setId(test.getId());
+        testMetaData.setDuration(test.getDurationInMinutes());
+        testMetaData.setAttemptLimit(test.getAttemptLimit());
+        testMetaData.setQuestionCount(test.getQuestions().size());
+        return testMetaData;
+    }
 
-        return ResponseEntity.ok()
-                .contentType(mediaType)
-                .headers(headers)
-                .body(resource);
+    private TestDto convertTestToCoreTestDto(Test test) {
+        TestDto testDto = new TestDto();
+        testDto.setId(test.getId());
+        testDto.setAttemptLimit(test.getAttemptLimit());
+        testDto.setDuration(test.getDurationInMinutes());
+        List<TestDto.Question> questionList = test.getQuestions().stream().map(q -> {
+            TestDto.Question question = new TestDto.Question();
+            question.setId(q.getId());
+            question.setText(q.getQuestionText());
+            List<TestDto.Option> optionList = q.getOptions().stream().map(o -> {
+                TestDto.Option option = new TestDto.Option();
+                option.setId(o.getId());
+                option.setText(o.getOptionText());
+                return option;
+            }).toList();
+            question.setOptions(optionList);
+            return question;
+        }).toList();
+        testDto.setQuestions(questionList);
+        return testDto;
     }
 }

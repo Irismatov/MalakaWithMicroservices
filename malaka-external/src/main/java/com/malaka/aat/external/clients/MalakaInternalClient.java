@@ -48,7 +48,7 @@ public interface MalakaInternalClient {
     BaseResponse getCourseNameById(@PathVariable String id);
 
     @GetMapping("/api/course/{courseId}/module/{moduleId}/topic/{topicId}/content/{contentId}")
-    ResponseEntity<Resource> getCourseModuleTopicContent(
+    ResponseEntity<byte[]> getCourseModuleTopicContent(
             @PathVariable String courseId,
             @PathVariable String moduleId,
             @PathVariable String topicId,
