@@ -10,6 +10,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.DB2400Dialect
 
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
 app:
   projectUrl: http://192.168.25.4:8585
   file:
