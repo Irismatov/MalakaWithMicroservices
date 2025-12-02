@@ -1,6 +1,7 @@
 package com.malaka.aat.external.controller;
 
 import com.malaka.aat.core.dto.BaseResponse;
+import com.malaka.aat.external.dto.auth.LoginOneIdRequest;
 import com.malaka.aat.external.dto.auth.UserLoginDto;
 import com.malaka.aat.external.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,6 +26,11 @@ public class AuthController {
     @PostMapping("/login")
     public BaseResponse login(@RequestBody @Validated UserLoginDto dto) {
         return authService.login(dto);
+    }
+
+    @PostMapping("/login/oneId")
+    public BaseResponse loginWithOneId(@RequestBody @Validated LoginOneIdRequest request) {
+        return authService.loginWithOneId(request);
     }
 
 }

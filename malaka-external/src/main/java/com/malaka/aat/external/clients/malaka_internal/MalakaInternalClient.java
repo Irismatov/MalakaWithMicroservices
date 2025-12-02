@@ -1,4 +1,4 @@
-package com.malaka.aat.external.clients;
+package com.malaka.aat.external.clients.malaka_internal;
 
 
 import com.malaka.aat.core.dto.BaseResponse;

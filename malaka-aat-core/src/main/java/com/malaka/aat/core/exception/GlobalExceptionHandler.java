@@ -28,6 +28,24 @@ public class GlobalExceptionHandler {
 //        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
 //    }
 
+    @ExceptionHandler(OneIdTokenException.class)
+    public BaseResponse handleOneIdTokenException(OneIdTokenException e, HttpServletRequest request) {
+        BaseResponse response = new BaseResponse();
+        ResponseUtil.setResponseStatus(response, ResponseStatus.ONE_ID_TOKEN_ERROR);
+        ErrorResponse errorResponse = buildErrResponse(request, HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        response.setData(errorResponse);
+        return response;
+    }
+
+    @ExceptionHandler(OneIdInfoException.class)
+    public BaseResponse handleOneIdInfoException(OneIdInfoException e, HttpServletRequest request) {
+        BaseResponse response = new BaseResponse();
+        ResponseUtil.setResponseStatus(response, ResponseStatus.ONE_ID_INFO_ERROR);
+        ErrorResponse errorResponse = buildErrResponse(request, HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        response.setData(errorResponse);
+        return response;
+    }
+
     @ExceptionHandler(ClientException.class)
     public BaseResponse handleClientException(ClientException e, HttpServletRequest request) {
         BaseResponse response = new BaseResponse();

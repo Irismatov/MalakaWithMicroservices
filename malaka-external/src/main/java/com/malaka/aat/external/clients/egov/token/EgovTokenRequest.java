@@ -1,4 +1,4 @@
-package com.malaka.aat.external.clients.token;
+package com.malaka.aat.external.clients.egov.token;
 
 import lombok.Getter;
 import lombok.Setter;

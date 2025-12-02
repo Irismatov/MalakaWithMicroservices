@@ -42,6 +42,8 @@ public class User extends BaseEntity {
     private String pinfl;
     @Column(name = "phone", length = 20)
     private String phone;
+    @Column(name = "img_path", length = 300)
+    private String imgPath;
     @Column(name = "birth_date")
     private LocalDate birthDate;
     @Column(name = "nationality")

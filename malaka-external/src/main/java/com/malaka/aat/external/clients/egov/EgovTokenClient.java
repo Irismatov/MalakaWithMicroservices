@@ -1,9 +1,9 @@
-package com.malaka.aat.external.clients;
+package com.malaka.aat.external.clients.egov;
 
 import com.malaka.aat.core.exception.custom.ClientException;
 import com.malaka.aat.core.util.EncryptionUtil;
-import com.malaka.aat.external.clients.token.EgovTokenRequest;
-import com.malaka.aat.external.clients.token.EgovTokenResponse;
+import com.malaka.aat.external.clients.egov.token.EgovTokenRequest;
+import com.malaka.aat.external.clients.egov.token.EgovTokenResponse;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

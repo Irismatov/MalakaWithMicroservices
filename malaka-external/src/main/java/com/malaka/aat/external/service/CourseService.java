@@ -9,7 +9,7 @@ import com.malaka.aat.core.exception.custom.NotFoundException;
 import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.test.TestMetaData;
 import com.malaka.aat.core.util.ResponseUtil;
-import com.malaka.aat.external.clients.MalakaInternalClient;
+import com.malaka.aat.external.clients.malaka_internal.MalakaInternalClient;
 import com.malaka.aat.external.dto.course.CourseTestContentDto;
 import com.malaka.aat.external.dto.course.LastEnrollmentDetail;
 import com.malaka.aat.external.dto.course.external.CourseDto;

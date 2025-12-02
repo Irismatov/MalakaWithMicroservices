@@ -1,4 +1,4 @@
-package com.malaka.aat.external.clients.gcp;
+package com.malaka.aat.external.clients.egov.gcp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -22,7 +22,7 @@ public class EgovGcpResponse {
 
 
 
-    @ToString
+
     @Getter
     @Setter
     public static class EgovGcpResponseData {
@@ -75,6 +75,35 @@ public class EgovGcpResponse {
         private String sex;
         @JsonProperty("photo")
         private String photo;
+
+        @Override
+        public String toString() {
+            return "EgovGcpResponseData{" +
+                    "transactionId='" + transactionId + '\'' +
+                    ", currentPinpp='" + currentPinpp + '\'' +
+                    ", pinpps=" + pinpps +
+                    ", currentDocument='" + currentDocument + '\'' +
+                    ", documents=" + documents +
+                    ", lastNameOz='" + lastNameOz + '\'' +
+                    ", firstNameOz='" + firstNameOz + '\'' +
+                    ", middleNameOz='" + middleNameOz + '\'' +
+                    ", lastNameUz='" + lastNameUz + '\'' +
+                    ", firstNameUz='" + firstNameUz + '\'' +
+                    ", middleNameUz='" + middleNameUz + '\'' +
+                    ", lastNameEn='" + lastNameEn + '\'' +
+                    ", firstNameEn='" + firstNameEn + '\'' +
+                    ", birthDate=" + birthDate +
+                    ", birthPlace='" + birthPlace + '\'' +
+                    ", birthCountry='" + birthCountry + '\'' +
+                    ", birthCountryId='" + birthCountryId + '\'' +
+                    ", liveStatus='" + liveStatus + '\'' +
+                    ", nationality='" + nationality + '\'' +
+                    ", nationalityId='" + nationalityId + '\'' +
+                    ", citizenship='" + citizenship + '\'' +
+                    ", citizenshipId='" + citizenshipId + '\'' +
+                    ", sex='" + sex + '\'' +
+                    '}';
+        }
     }
 
     @ToString

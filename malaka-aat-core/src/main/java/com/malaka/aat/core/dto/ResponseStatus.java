@@ -19,10 +19,11 @@ public enum ResponseStatus {
     FORBIDDEN(10, "Ruxsat cheklangan"),
     JWT_ERROR(11, "JWT token bilan xatolik yuzaga keldi"),
     CLIENT_ERROR(12, "Tashqi API bilan xatolik yuzaga keldi"),
-    EGOV_ERROR(12, "Personallashtirish markazi tizimda xatolik sodir bo‘ldi")
+    EGOV_ERROR(12, "Personallashtirish markazi tizimda xatolik sodir bo‘ldi"),
+    ONE_ID_TOKEN_ERROR(13, "One id serveridan token olishda xatolik sodir bo'ldi"),
+    ONE_ID_INFO_ERROR(14, "One id dan ma'lumot olishda xatolik sodir bo'ldi")
+
     ;
-
-
 
     private final int code;
     private final String note;

@@ -1,4 +1,4 @@
-package com.malaka.aat.external.clients;
+package com.malaka.aat.external.clients.malaka_internal;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
@@ -8,10 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Configuration for Feign Client to communicate with malaka-internal service.
- * This configuration uses service account authentication for inter-service communication.
- */
+
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
@@ -19,10 +16,6 @@ public class MalakaInternalClientConfig {
 
     private final InternalServiceAuthenticationService authService;
 
-    /**
-     * Request interceptor that adds service account JWT token
-     * to all outgoing Feign client requests to malaka-internal.
-     */
     @Bean
     public RequestInterceptor requestInterceptor() {
         return new RequestInterceptor() {
@@ -47,9 +40,6 @@ public class MalakaInternalClientConfig {
         };
     }
 
-    /**
-     * Error decoder to handle 401/403 responses by invalidating cached token
-     */
     @Bean
     public feign.codec.ErrorDecoder errorDecoder() {
         return (methodKey, response) -> {

@@ -1,4 +1,4 @@
-package com.malaka.aat.external.clients.gcp;
+package com.malaka.aat.external.clients.egov.gcp;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;

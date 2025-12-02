@@ -1,11 +1,10 @@
-package com.malaka.aat.external.clients;
+package com.malaka.aat.external.clients.egov;
 
 import com.malaka.aat.core.exception.custom.BadRequestException;
 import com.malaka.aat.core.exception.custom.ClientException;
 import com.malaka.aat.core.exception.custom.EgovClientException;
-import com.malaka.aat.core.exception.custom.SystemException;
-import com.malaka.aat.external.clients.gcp.EgovGcpRequest;
-import com.malaka.aat.external.clients.gcp.EgovGcpResponse;
+import com.malaka.aat.external.clients.egov.gcp.EgovGcpRequest;
+import com.malaka.aat.external.clients.egov.gcp.EgovGcpResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -17,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDate;
@@ -62,8 +62,13 @@ public class EgovClient {
 
     @PostConstruct
     public void init() {
+        int bufferSize = 100 * 1024 * 1024;
+        ExchangeStrategies strategies = ExchangeStrategies.builder()
+                .codecs(codecs -> codecs.defaultCodecs().maxInMemorySize(bufferSize))
+                .build();
         webClient = webClientBuilder
                 .baseUrl(url)
+                .exchangeStrategies(strategies)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }

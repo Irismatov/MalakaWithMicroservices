@@ -35,6 +35,28 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    public String generateAccessToken(String pinfl) {
+        long expirationInMs = accessTokenExpirationInHours * 3600 * 1000;
+        Date expiryDate = new Date(System.currentTimeMillis() + expirationInMs);
+        return Jwts.builder()
+                .subject(pinfl)
+                .issuedAt(new Date())
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generateRefreshToken(String pinfl) {
+        long expirationInMs = accessTokenExpirationInHours * 3600 * 1000;
+        Date expiryDate = new Date(System.currentTimeMillis() + expirationInMs);
+        return Jwts.builder()
+                .subject(pinfl)
+                .issuedAt(new Date())
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
+                .compact();
+    }
+
     public String generateAccessToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 

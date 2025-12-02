@@ -1,6 +1,6 @@
 package com.malaka.aat.external.dto.info;
 
-import com.malaka.aat.external.clients.gcp.EgovGcpResponse;
+import com.malaka.aat.external.clients.egov.gcp.EgovGcpResponse;
 import lombok.Getter;
 import lombok.Setter;
 
