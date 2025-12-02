@@ -6,9 +6,6 @@ spring:
     driver-class-name: com.ibm.as400.access.AS400JDBCDriver
   jpa:
     show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.DB2400Dialect
 
 eureka:
   client:
