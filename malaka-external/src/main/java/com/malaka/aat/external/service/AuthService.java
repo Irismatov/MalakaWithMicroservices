@@ -27,6 +27,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,7 @@ import java.util.Optional;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     @Value("${app.file.user-images.path}")
     private String userImagesPath;
 
@@ -125,6 +127,7 @@ public class AuthService {
         user.setMiddleName(egovGcpResponseData.getMiddleNameOz());
         user.setBirthDate(egovGcpResponseData.getBirthDate());
         user.setNationality(egovGcpResponseData.getNationality());
+        user.setPassword(passwordEncoder.encode("12345678"));
 
         switch (egovGcpResponseData.getSex()) {
             case "1" -> {
