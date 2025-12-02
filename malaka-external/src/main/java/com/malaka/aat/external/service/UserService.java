@@ -4,14 +4,17 @@ import com.malaka.aat.core.dto.BaseResponse;
 import com.malaka.aat.core.dto.Pagination;
 import com.malaka.aat.core.dto.ResponseStatus;
 import com.malaka.aat.core.dto.ResponseWithPagination;
+import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.core.util.ServiceUtil;
 import com.malaka.aat.external.dto.user.StudentFioListDto;
 import com.malaka.aat.external.dto.user.StudentListDto;
+import com.malaka.aat.external.dto.user.UserDetails;
 import com.malaka.aat.external.model.Student;
 import com.malaka.aat.external.model.spr.StudentTypeSpr;
 import com.malaka.aat.external.repository.StudentRepository;
 import com.malaka.aat.external.repository.UserRepository;
+import com.malaka.aat.external.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +22,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -28,6 +35,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final StudentTypeSprService studentTypeSprService;
+    private final SessionService sessionService;
+
 
     public BaseResponse getStudentsByType(Long type) {
         BaseResponse response = new BaseResponse();
@@ -90,5 +99,38 @@ public class UserService {
         studentListDto.setFio(fio.toString());
 
         return studentListDto;
+    }
+
+    public BaseResponse getCurrentUserDetails() {
+        User currentUser = sessionService.getCurrentUser();
+        UserDetails userDetails = new  UserDetails();
+        userDetails.setId(currentUser.getId());
+        userDetails.setFirstName(currentUser.getFirstName());
+        userDetails.setLastName(currentUser.getLastName());
+        userDetails.setMiddleName(currentUser.getMiddleName());
+        userDetails.setPinfl(currentUser.getPinfl());
+        userDetails.setPhone(currentUser.getPhone());
+        userDetails.setBirthDate(currentUser.getBirthDate());
+        userDetails.setEmail(currentUser.getEmail());
+        userDetails.setNationality(currentUser.getNationality());
+        userDetails.setGender(currentUser.getGender().getValue());
+        userDetails.setWorkPlace(currentUser.getWorkplace());
+        userDetails.setWorkPosition(currentUser.getWorkPosition());
+        userDetails.setWorkPlaceDepartment(currentUser.getWorkplaceDepartment());
+        userDetails.setLicenseNumber(currentUser.getLicenseNumber());
+        userDetails.setWorkCategory(currentUser.getWorkCategory());
+
+        try {
+            byte[] bytes = Files.readAllBytes(Path.of(currentUser.getImgPath()));
+            String imgBase64 = Base64.getEncoder().encodeToString(bytes);
+            userDetails.setImg(imgBase64);
+        } catch (IOException e) {
+            throw new SystemException(e.getMessage());
+        }
+
+        BaseResponse response = new BaseResponse();
+        response.setData(userDetails);
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+        return response;
     }
 }

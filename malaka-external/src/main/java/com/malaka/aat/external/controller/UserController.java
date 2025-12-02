@@ -40,4 +40,9 @@ public class UserController {
         return userService.getStudentsWithPagination(page, size, typeId, search);
     }
 
+    @GetMapping("/user/me")
+    public BaseResponse getCurrentUser() {
+        return userService.getCurrentUserDetails();
+    }
+
 }
