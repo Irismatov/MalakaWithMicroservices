@@ -29,9 +29,6 @@ public class User extends BaseEntity {
     @Column(name = "id", length = 50, nullable = false)
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    @Column(name = "username", columnDefinition = "VARCHAR(50)")
-    @Size(min = 1, max = 50, message = "Логин киритилмаган")
-    private String username;
     @Column(name = "user_password", columnDefinition = "VARCHAR(1000)")
     @Size(min = 1, message = "Илтимос паролни киритинг")
     private String password;

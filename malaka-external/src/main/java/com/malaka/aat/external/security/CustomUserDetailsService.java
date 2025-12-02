@@ -20,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        User user = userRepository.findByUsername(username).orElseThrow(() ->
+        User user = userRepository.findByPinfl(username).orElseThrow(() ->
                 new UsernameNotFoundException("User not found with username: " + username));
 
         UserPrincipal userPrincipal = UserPrincipal.create(user);

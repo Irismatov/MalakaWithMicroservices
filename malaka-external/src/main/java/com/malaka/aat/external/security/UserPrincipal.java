@@ -16,7 +16,6 @@ import java.util.List;
 public class UserPrincipal implements UserDetails {
 
     private String id;
-    private String username;
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
 
@@ -42,7 +41,6 @@ public class UserPrincipal implements UserDetails {
 
         UserPrincipal userPrincipal = new UserPrincipal();
         userPrincipal.setId(user.getId());
-        userPrincipal.setUsername(user.getUsername());
         userPrincipal.setPassword(user.getPassword());
         userPrincipal.setAuthorities(authorities);
         userPrincipal.setFirstName(user.getFirstName());
@@ -66,7 +64,7 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return pinfl;
     }
 
     @Override

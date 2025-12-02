@@ -106,11 +106,11 @@ public class DataLoader implements CommandLineRunner {
 
     private void initializeDefaultUsers() {
         int created = 0;
-        created += createUserIfNotExists("admin", "ADMIN", "Abduqodirovich", "Husanov", "Botir", "1234567890123456") ? 1 : 0;
-        created += createUserIfNotExists("user", "USER", "Shuxratovich", "Rahimov", "Sardor", "2345678901234567") ? 1 : 0;
-        created += createUserIfNotExists("student", "STUDENT", "Dilshodovich", "Toshmatov", "Jasur", "3456789012345678") ? 1 : 0;
+        created += createUserIfNotExists("ADMIN", "Abduqodirovich", "Husanov", "Botir", "1234567890123456") ? 1 : 0;
+        created += createUserIfNotExists("USER", "Shuxratovich", "Rahimov", "Sardor", "2345678901234567") ? 1 : 0;
+        created += createUserIfNotExists("STUDENT", "Dilshodovich", "Toshmatov", "Jasur", "3456789012345678") ? 1 : 0;
         // Service account for malaka-internal to access malaka-external APIs
-        created += createServiceAccountIfNotExists("internal-service", "ADMIN", "InternalService@2024") ? 1 : 0;
+        created += createServiceAccountIfNotExists("internal-service", "ADMIN", "InternalService@2025") ? 1 : 0;
 
         if (created > 0) {
             log.info("Created {} new default user(s)", created);
@@ -118,25 +118,23 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private boolean createUserIfNotExists(
-            String username,
             String roleName,
             String middleName,
             String lastName,
             String firstName,
             String pinfl
     ) {
-        if (userRepository.findByUsername(username).isPresent()) {
+        if (userRepository.findByPinfl(pinfl).isPresent()) {
             return false;
         }
 
         Optional<Role> role = roleRepository.findByName(roleName);
         if (role.isEmpty()) {
-            log.error("Role '{}' not found, cannot create user '{}'", roleName, username);
+            log.error("Role '{}' not found, cannot create user '{}'", roleName, pinfl);
             return false;
         }
 
         User user = new User();
-        user.setUsername(username);
         user.setPassword(passwordEncoder.encode("12345678"));
         user.setFirstName(firstName);
         user.setLastName(lastName);
@@ -150,31 +148,30 @@ public class DataLoader implements CommandLineRunner {
 
 
     private boolean createServiceAccountIfNotExists(
-            String username,
+            String pinfl,
             String roleName,
             String password
     ) {
-        if (userRepository.findByUsername(username).isPresent()) {
+        if (userRepository.findByPinfl(pinfl).isPresent()) {
             return false;
         }
 
         Optional<Role> role = roleRepository.findByName(roleName);
         if (role.isEmpty()) {
-            log.error("Role '{}' not found, cannot create service account '{}'", roleName, username);
+            log.error("Role '{}' not found, cannot create service account '{}'", roleName, pinfl);
             return false;
         }
 
         User serviceAccount = new User();
-        serviceAccount.setUsername(username);
         serviceAccount.setPassword(passwordEncoder.encode(password));
         serviceAccount.setFirstName("Internal");
         serviceAccount.setLastName("Service");
         serviceAccount.setMiddleName("Account");
-        serviceAccount.setPinfl("8888888888888888"); // Dummy PINFL for service account
+        serviceAccount.setPinfl(pinfl);
         serviceAccount.setRoles(Set.of(role.get()));
 
         userRepository.save(serviceAccount);
-        log.info("Created service account: {}", username);
+        log.info("Created service account: {}", pinfl);
         return true;
     }
 }

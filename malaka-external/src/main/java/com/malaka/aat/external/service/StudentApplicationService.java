@@ -336,7 +336,6 @@ public class StudentApplicationService {
                 () -> {
                     User newUser = new User();
                     newUser.setPinfl(pinfl);
-                    newUser.setUsername(pinfl);
                     newUser.getRoles().add(userRole);
                     newUser.setPassword(passwordEncoder.encode("12345678"));
                     newUser.setFirstName(info.getData().get(0).getFirstNameOz());

@@ -50,7 +50,7 @@ public class SessionService {
         }
 
         if (authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.User userPrincipal) {
-            user = userRepository.findByUsername(userPrincipal.getUsername()).get();
+            user = userRepository.findByPinfl(userPrincipal.getUsername()).get();
         }
 
         return user.getId();
