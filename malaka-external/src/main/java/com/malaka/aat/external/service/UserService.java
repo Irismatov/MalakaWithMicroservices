@@ -10,6 +10,8 @@ import com.malaka.aat.core.util.ServiceUtil;
 import com.malaka.aat.external.dto.user.StudentFioListDto;
 import com.malaka.aat.external.dto.user.StudentListDto;
 import com.malaka.aat.external.dto.user.UserDetails;
+import com.malaka.aat.external.model.Passport;
+import com.malaka.aat.external.model.Role;
 import com.malaka.aat.external.model.Student;
 import com.malaka.aat.external.model.spr.StudentTypeSpr;
 import com.malaka.aat.external.repository.StudentRepository;
@@ -120,12 +122,21 @@ public class UserService {
         userDetails.setLicenseNumber(currentUser.getLicenseNumber());
         userDetails.setWorkCategory(currentUser.getWorkCategory());
 
-        try {
-            byte[] bytes = Files.readAllBytes(Path.of(currentUser.getImgPath()));
-            String imgBase64 = Base64.getEncoder().encodeToString(bytes);
-            userDetails.setImg(imgBase64);
-        } catch (IOException e) {
-            throw new SystemException(e.getMessage());
+        Passport passport = currentUser.getPassports().stream().filter(p -> p.getIsCurrent() == 1).findFirst().get();
+        userDetails.setPassportNumber(passport.getSerNumber());
+        userDetails.setPassportGivenPlace(passport.getDocGivenPlace());
+        userDetails.setRoles(
+                currentUser.getRoles().stream().map(Role::getName).toList()
+        );
+
+        if (currentUser.getImgPath() != null) {
+            try {
+                byte[] bytes = Files.readAllBytes(Path.of(currentUser.getImgPath()));
+                String imgBase64 = Base64.getEncoder().encodeToString(bytes);
+                userDetails.setImg(imgBase64);
+            } catch (IOException e) {
+                throw new SystemException(e.getMessage());
+            }
         }
 
         BaseResponse response = new BaseResponse();

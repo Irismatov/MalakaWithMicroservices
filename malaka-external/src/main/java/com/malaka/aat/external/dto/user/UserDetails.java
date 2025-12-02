@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,6 +28,6 @@ public class UserDetails {
     private String workCategory;
     private String passportNumber;
     private String passportGivenPlace;
-    private String[] roles;
+    private List<String> roles;
     private String img;
 }
