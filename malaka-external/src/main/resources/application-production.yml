@@ -28,4 +28,4 @@ app:
 
 clients:
   malaka-internal:
-    base-url: http://192.168.214.222/api/auth/login
+    base-url: http://192.168.214.222:8081/api/auth/login
