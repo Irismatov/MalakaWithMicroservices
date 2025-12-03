@@ -39,12 +39,7 @@ public class InternalServiceAuthenticationService {
         this.objectMapper = new ObjectMapper();
     }
 
-    /**
-     * Gets a valid JWT access token for malaka-internal service.
-     * Uses cached token if still valid, otherwise authenticates to get a new one.
-     *
-     * @return JWT access token
-     */
+
     public synchronized String getAccessToken() {
         // Check if we have a cached token that's still valid
         if (cachedAccessToken != null && System.currentTimeMillis() < tokenExpirationTime) {

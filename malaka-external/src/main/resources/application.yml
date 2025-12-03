@@ -46,7 +46,6 @@ logging:
 
 clients:
   malaka-internal:
-    base-url: lb://malaka-internal
     service-account:
       username: external-service
       password: ExternalService@2024

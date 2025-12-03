@@ -34,11 +34,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Year;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -47,6 +46,9 @@ public class StudentApplicationService {
 
     @Value("${app.projectUrl}")
     private String projectUrl;
+
+    @Value("${app.file.user-images.path}")
+    private String userImagesPath;
 
     private final StudentApplicationRepository studentApplicationRepository;
     private final FileService fileService;
@@ -286,7 +288,20 @@ public class StudentApplicationService {
             user.setBirthDate(egovGcpResponseData.getBirthDate());
             user.setNationality(egovGcpResponseData.getNationality());
 
-            fileService.saveBase64FileAsImageForUser(pinfl, egovGcpResponseData.getPhoto());
+            String photo = egovGcpResponseData.getPhoto();
+            if (photo != null) {
+                Path folderPath = Path.of(userImagesPath);
+
+
+                if (Files.notExists(folderPath)) {
+                    Files.createDirectories(folderPath);
+                }
+
+                byte[] bytes = Base64.getDecoder().decode(photo);
+                Path filePath = folderPath.resolve(pinfl);
+                Files.write(filePath, bytes);
+                user.setImgPath(filePath.toString());
+            }
 
             switch (egovGcpResponseData.getSex()) {
                 case "1" -> {

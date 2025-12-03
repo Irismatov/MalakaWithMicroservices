@@ -25,3 +25,7 @@ app:
     secretKey: Y1ZNbXM1aGZTaWlxbnowMWc3UTFuSTgxZEp5eFdKdjE=
     accessTokenExpirationInHours: 1
     refreshTokenExpirationInHours: 24
+
+clients:
+  malaka-internal:
+    base-url: lb://malaka-internal

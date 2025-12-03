@@ -4,6 +4,8 @@ import com.malaka.aat.external.model.spr.StudentTypeSpr;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +15,8 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "student")
+@SQLRestriction("is_deleted = 0")
+@SQLDelete(sql = "UPDATE student SET is_deleted = 1 WHERE id = ?")
 public class Student extends BaseEntity {
 
     @Column(name = "id", length = 50, nullable = false)
