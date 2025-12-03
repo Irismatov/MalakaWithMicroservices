@@ -48,7 +48,7 @@ clients:
   malaka-internal:
     service-account:
       username: external-service
-      password: ExternalService@2025
+      password: ExternalService@2024
   one-id:
     client-id: malaka_customs_uz
     client-secret: pC87xf6R82pHWD5hThIRF9fe
