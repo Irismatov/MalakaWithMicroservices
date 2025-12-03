@@ -83,9 +83,7 @@ public class TopicService {
         return response;
     }
 
-    /**
-     * Initialize chunk upload session
-     */
+
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SUPER_ADMIN')")
     public BaseResponse initChunkUpload(String topicId, InitChunkUploadDto dto) {
         BaseResponse response = new BaseResponse();

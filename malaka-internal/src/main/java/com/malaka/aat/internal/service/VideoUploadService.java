@@ -51,9 +51,7 @@ public class VideoUploadService {
             ".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a"
     );
 
-    /**
-     * Upload video/audio file with streaming to avoid memory issues
-     */
+
     public File uploadMediaFile(MultipartFile multipartFile, TopicContentType contentType) throws IOException {
 
         validateMediaFile(multipartFile, contentType);
@@ -65,7 +63,15 @@ public class VideoUploadService {
         Optional<File> existingFile = fileRepository.findByHash(hash);
         if (existingFile.isPresent()) {
             log.info("Media file already exists with hash: {}", hash);
-            return existingFile.get();
+            File oldFile = existingFile.get();
+            File file = new  File();
+            file.setHash(hash);
+            file.setContentType(oldFile.getContentType());
+            file.setFileSize(oldFile.getFileSize());
+            file.setOriginalName(oldFile.getOriginalName());
+            file.setPath(oldFile.getPath());
+            file.setExtension(oldFile.getExtension());
+            return fileRepository.save(file);
         }
 
         // Create date-based folder structure
