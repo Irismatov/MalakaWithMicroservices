@@ -51,10 +51,7 @@ public class InternalServiceAuthenticationService {
         log.info("Authenticating with malaka-internal service as: {}", serviceUsername);
 
         try {
-            // Resolve lb:// to actual URL - for RestTemplate we need to use direct URL
-            // In production with Eureka, you would resolve the service URL
-            String loginUrl = malakaInternalBaseUrl.replace("lb://malaka-internal", "http://localhost:8081")
-                + "/api/auth/login";
+
 
             // Create login request
             UserLoginDto loginDto = new UserLoginDto();
@@ -67,7 +64,7 @@ public class InternalServiceAuthenticationService {
 
             // Send authentication request
             ResponseEntity<BaseResponse> response = restTemplate.postForEntity(
-                loginUrl,
+                malakaInternalBaseUrl,
                 request,
                 BaseResponse.class
             );

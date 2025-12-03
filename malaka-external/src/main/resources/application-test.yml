@@ -28,4 +28,4 @@ app:
 
 clients:
   malaka-internal:
-    base-url: lb://malaka-internal
+    base-url: http://localhost:8081/api/auth/login
