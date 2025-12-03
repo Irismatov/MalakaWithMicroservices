@@ -28,7 +28,7 @@ clients:
     base-url: lb://malaka-external
     service-account:
       username: internal-service
-      password: InternalService@2024
+      password: InternalService@2025
   egov:
     main-url: https://apimgw.egov.uz:8243
     mvd-request:

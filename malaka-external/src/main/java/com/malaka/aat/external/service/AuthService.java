@@ -20,6 +20,8 @@ import com.malaka.aat.external.model.Passport;
 import com.malaka.aat.external.model.User;
 import com.malaka.aat.external.repository.UserRepository;
 import com.malaka.aat.external.security.jwt.JwtTokenProvider;
+import com.malaka.aat.external.model.Role;
+import com.malaka.aat.external.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,7 +36,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -42,6 +46,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
     @Value("${app.file.user-images.path}")
     private String userImagesPath;
 
@@ -128,6 +133,11 @@ public class AuthService {
         user.setBirthDate(egovGcpResponseData.getBirthDate());
         user.setNationality(egovGcpResponseData.getNationality());
         user.setPassword(passwordEncoder.encode("12345678"));
+
+        Role role = roleRepository.findByName("USER").orElseThrow(() -> new SystemException("Role not found with name user"));
+        Set<Role> roles = new HashSet<>();
+        roles.add(role);
+        user.setRoles(roles);
 
         switch (egovGcpResponseData.getSex()) {
             case "1" -> {

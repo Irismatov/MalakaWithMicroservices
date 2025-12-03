@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
 import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @Service
@@ -128,6 +129,9 @@ public class UserService {
         userDetails.setRoles(
                 currentUser.getRoles().stream().map(Role::getName).toList()
         );
+        Set<Role> roles = currentUser.getRoles();
+        List<String> list = roles.stream().map(Role::getName).toList();
+        userDetails.setRoles(list);
 
         if (currentUser.getImgPath() != null) {
             try {
