@@ -15,12 +15,11 @@ eureka:
       defaultZone: http://192.168.214.222:8761/eureka/
 
 app:
-  projectUrl: http://192.168.214.222:8585
-  file:
-    path: /var/lib/malaka-external/files/
-    user-images:
-      path: /var/lib/malaka-external/files/
   security:
     secretKey: Y1ZNbXM1aGZTaWlxbnowMWc3UTFuSTgxZEp5eFdKdjE=
     accessTokenExpirationInHours: 1
     refreshTokenExpirationInHours: 24
+  file:
+    path: /var/lib/malaka-internal/files/images
+    video-path: /var/lib/malaka-internal/files/videos
+    chunk-size: 5242880
