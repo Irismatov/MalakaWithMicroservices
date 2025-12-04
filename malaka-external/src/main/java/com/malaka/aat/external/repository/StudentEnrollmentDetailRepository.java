@@ -23,6 +23,10 @@ public interface StudentEnrollmentDetailRepository extends JpaRepository<Student
     List<String> findModuleIdsByStudentEnrollment(@Param("studentEnrollment") StudentEnrollment studentEnrollment,
                                                   @Param("type") StudentEnrollmentDetailType type);
 
+    @Query(value = "select s from StudentEnrollmentDetail s " +
+            "where s.studentEnrollment = :studentEnrollment and s.type = :type")
+    List<StudentEnrollmentDetail> findEnrollmentDetailsByStudentEnrollment(@Param("studentEnrollment") StudentEnrollment studentEnrollment,
+                                                  @Param("type") StudentEnrollmentDetailType type);
 
     @Query(value = "select s.topicId from StudentEnrollmentDetail s " +
             "where s.studentEnrollment = :studentEnrollment and s.type = :type")

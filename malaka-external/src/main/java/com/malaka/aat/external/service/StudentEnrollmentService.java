@@ -9,22 +9,23 @@ import com.malaka.aat.core.exception.custom.SystemException;
 import com.malaka.aat.core.util.ResponseUtil;
 import com.malaka.aat.external.clients.malaka_internal.MalakaInternalClient;
 import com.malaka.aat.external.dto.course.external.CourseDto;
+import com.malaka.aat.external.dto.course.internal.TestDto;
 import com.malaka.aat.external.dto.enrollment.StudentEnrollmentDetailDto;
 import com.malaka.aat.external.dto.module.ModuleDto;
 import com.malaka.aat.external.dto.topic.TopicDto;
 import com.malaka.aat.core.enumerators.CourseContentType;
+import com.malaka.aat.external.enumerators.TestAttemptState;
+import com.malaka.aat.external.enumerators.TestAttemptType;
 import com.malaka.aat.external.enumerators.group.GroupStatus;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentDetailType;
 import com.malaka.aat.external.enumerators.student_enrollment.StudentEnrollmentStatus;
 import com.malaka.aat.external.model.*;
-import com.malaka.aat.external.repository.GroupRepository;
-import com.malaka.aat.external.repository.StudentEnrollmentDetailRepository;
-import com.malaka.aat.external.repository.StudentEnrollmentRepository;
-import com.malaka.aat.external.repository.StudentRepository;
+import com.malaka.aat.external.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -40,6 +41,7 @@ public class StudentEnrollmentService {
     private final StudentEnrollmentDetailRepository studentEnrollmentDetailRepository;
     private final MalakaInternalClient malakaInternalClient;
     private final ObjectMapper objectMapper;
+    private final StudentTestAttemptRepository studentTestAttemptRepository;
 
 
     @Transactional
@@ -390,5 +392,93 @@ public class StudentEnrollmentService {
         BaseResponse response = new BaseResponse();
         ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
         return response;
+    }
+
+    @Transactional
+    public BaseResponse startTest(String groupId, String moduleId, String topicId, String testId) {
+        BaseResponse response = new BaseResponse();
+        ResponseUtil.setResponseStatus(response, ResponseStatus.SUCCESS);
+
+
+        // validation
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new NotFoundException("Group not found with id " + groupId));
+        User currentUser = sessionService.getCurrentUser();
+        Student student = studentRepository.findByUser(currentUser).orElseThrow(() -> new NotFoundException("Current user is not a student"));
+        if (!group.getStudents().contains(student)) {
+            throw new  BadRequestException("Student does not belong to this group");
+        }
+        StudentEnrollment enrollment = studentEnrollmentRepository.findByStudentAndCourseIdAndGroup(student, group.getCourseId(), group).orElseThrow(
+                () -> new BadRequestException("Course has not been started yet")
+        );
+
+        BaseResponse responseInternal = malakaInternalClient.getCourseById(enrollment.getCourseId());
+        com.malaka.aat.external.dto.course.internal.CourseDto courseDto = objectMapper.convertValue(responseInternal.getData(), com.malaka.aat.external.dto.course.internal.CourseDto.class);
+        com.malaka.aat.external.dto.course.internal.ModuleDto moduleDto = courseDto.getModules().stream().filter(e -> e.getId().equals(moduleId)).findFirst().orElseThrow(() -> new NotFoundException("Module not found with id " + moduleId));
+        com.malaka.aat.external.dto.course.internal.TopicDto topicDto = moduleDto.getTopics().stream().filter(e -> e.getId().equals(topicId)).findFirst().orElseThrow(() -> new NotFoundException("Topic not found with id " + topicId));
+        TestDto testDto = topicDto.getTestDto();
+        if (!testDto.getId().equals(testId)) {
+            throw new  BadRequestException("Test not found with id " + testId);
+        }
+
+
+        List<String> moduleIdsByStudentEnrollment = studentEnrollmentDetailRepository.findModuleIdsByStudentEnrollment(enrollment, StudentEnrollmentDetailType.START);
+        String s2 = moduleIdsByStudentEnrollment.stream().filter(e -> e.equals(moduleId)).findFirst().orElseThrow(() -> new NotFoundException("Module has not been started yet"));
+        List<String> topicIdsByStudentEnrollment = studentEnrollmentDetailRepository.findTopicIdsByStudentEnrollment(enrollment, StudentEnrollmentDetailType.START);
+        String s1 = topicIdsByStudentEnrollment.stream().filter(e -> e.equals(topicId)).findFirst().orElseThrow(() -> new NotFoundException("Topic has not been started yet"));
+        List<String> contentIdsByStudentEnrollment = studentEnrollmentDetailRepository.findContentIdsByStudentEnrollmentAndType(enrollment, StudentEnrollmentDetailType.START);
+        String s = contentIdsByStudentEnrollment.stream().filter(e -> e.equals(testId)).findFirst().orElseThrow(() -> new NotFoundException("Test has not been started yet"));
+
+        List<StudentTestAttempt> attempts = studentTestAttemptRepository.findByGroupAndModuleIdAndTopicIdAndTestIdAndTypeOrderedByOrder(
+          group, moduleId, topicId, testId, TestAttemptType.TOPIC_TEST
+        );
+        Optional<StudentTestAttempt> testAttemptNotFinishedOpt = attempts.stream().filter(
+                e -> e.getState() == TestAttemptState.STARTED
+        ).findFirst();
+
+        if (testAttemptNotFinishedOpt.isPresent()) {
+            StudentTestAttempt studentTestAttemptNotFinished = testAttemptNotFinishedOpt.get();
+            LocalDateTime instime = studentTestAttemptNotFinished.getInstime();
+            LocalDateTime endTime = instime.plusMinutes(testDto.getDurationInMinutes());
+            LocalDateTime now = LocalDateTime.now();
+            if (now.isBefore(endTime)) {
+                return response;
+            }
+
+            studentTestAttemptNotFinished.setState(TestAttemptState.FINISHED);
+            studentTestAttemptNotFinished.setEndTime(endTime);
+            calculateAndSetStudentTestAttemptResults(studentTestAttemptNotFinished);
+            studentTestAttemptRepository.save(studentTestAttemptNotFinished);
+        }
+
+
+        // Main logic
+        StudentTestAttempt studentTestAttempt = new StudentTestAttempt();
+        studentTestAttempt.setStudent(student);
+        studentTestAttempt.setModuleId(moduleId);
+        studentTestAttempt.setTopicId(topicId);
+        studentTestAttempt.setTestId(testId);
+        studentTestAttempt.setGroup(group);
+        studentTestAttempt.setTotalQuestions(testDto.getQuestions().size());
+        studentTestAttempt.setType(TestAttemptType.TOPIC_TEST);
+        studentTestAttempt.setState(TestAttemptState.STARTED);
+        studentTestAttempt.setIsSuccess((short) 0);
+        studentTestAttempt.setAttemptNumber(attempts.size() + 1);
+        studentTestAttemptRepository.save(studentTestAttempt);
+
+        return response;
+    }
+
+    private void calculateAndSetStudentTestAttemptResults(StudentTestAttempt studentTestAttempt) {
+        List<StudentTestAttemptDetail> details = studentTestAttempt.getDetails();
+        long count = details.stream().filter(e -> e.getIsCorrect() == 1).count();
+        studentTestAttempt.setCorrectAnswers((int) count);
+
+        double percentage = ((double) count / studentTestAttempt.getTotalQuestions()) * 100;
+        studentTestAttempt.setCorrectAnswerPercentage((int) Math.round(percentage));
+        if (percentage >= 70) {
+            studentTestAttempt.setIsSuccess((short) 1);
+        } else {
+            studentTestAttempt.setIsSuccess((short) 0);
+        }
     }
 }

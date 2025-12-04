@@ -131,9 +131,7 @@ public class TopicService {
         return response;
     }
 
-    /**
-     * Upload individual chunk
-     */
+
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'SUPER_ADMIN')")
     public BaseResponse uploadChunk(String topicId, String uploadId, Integer chunkNumber,
                                                MultipartFile chunk) throws IOException {
