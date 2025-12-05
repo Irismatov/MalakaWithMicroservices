@@ -20,6 +20,6 @@ app:
     accessTokenExpirationInHours: 1
     refreshTokenExpirationInHours: 24
   file:
-    path: /var/lib/malaka-internal/files/images
-    video-path: /var/lib/malaka-internal/files/videos
+    path: /var/lib/malaka-internal/files/images/
+    video-path: /var/lib/malaka-internal/files/videos/
     chunk-size: 5242880

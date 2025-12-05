@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:as400://172.16.111.1/BIMALAKA;libraries=BIMALAKA;naming=system;translate binary=true;package cache=true;lob threshold=1048576
+    url: jdbc:as400://172.16.111.1/BIMALAKA;
     username: UJAXON01
     password: JaX0n1002
     driver-class-name: com.ibm.as400.access.AS400JDBCDriver
@@ -9,11 +9,6 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.DB2400Dialect
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
 
 app:
   security:
